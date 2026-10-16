@@ -1,6 +1,7 @@
 export interface MunicipalReportRequest {
   report_id: string;
   description: string;
+  category_hint?: string;
   media_ref: string;
   location?: {
     address?: string | null;
