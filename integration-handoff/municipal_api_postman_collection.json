@@ -1,0 +1,172 @@
+{
+  "info": {
+    "_postman_id": "c34f0687-9b4c-46ee-ab5a-4b0f53367c3b",
+    "name": "Plateforme Municipale Smart City - Membre 5 API",
+    "description": "Collection complète des requêtes d'intégration pour le projet de billetterie municipale automatisée (ESPRIT 5DS - Deep Learning Avancé).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Santé du Système",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Vérifie la connectivité PostgreSQL et le mode du moteur n8n."
+      }
+    },
+    {
+      "name": "2. Statistiques du Cockpit (KPIs)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/dashboard/stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "dashboard", "stats"]
+        },
+        "description": "Retourne les métriques calculées en direct depuis PostgreSQL."
+      }
+    },
+    {
+      "name": "3. Soumettre Signalement Citoyen (PASS)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"report_id\": \"RPT-POSTMAN-PASS-001\",\n  \"description\": \"Nid-de-poule profond devant la gare.\",\n  \"category_hint\": \"ROAD_DAMAGE\",\n  \"media_ref\": \"raw/pothole.jpg\",\n  \"location\": {\n    \"address\": \"Place de Barcelone, Tunis\",\n    \"latitude\": 36.795,\n    \"longitude\": 10.18\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/reports",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reports"]
+        }
+      }
+    },
+    {
+      "name": "4. Soumettre Signalement Citoyen (REVIEW Mismatch)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"report_id\": \"RPT-POSTMAN-REV-001\",\n  \"description\": \"Lampadaire défectueux éteint la nuit.\",\n  \"category_hint\": \"STREET_LIGHTING\",\n  \"media_ref\": \"raw/mismatch_water.jpg\",\n  \"location\": {\n    \"address\": \"Rue de Rome, Tunis\",\n    \"latitude\": 36.802,\n    \"longitude\": 10.178\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/reports",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reports"]
+        }
+      }
+    },
+    {
+      "name": "5. Soumettre Signalement Citoyen (REJECT Sans Média)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"report_id\": \"RPT-POSTMAN-REJ-001\",\n  \"description\": \"Dépôt sauvage sans photo.\",\n  \"category_hint\": \"WASTE\",\n  \"media_ref\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/reports",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reports"]
+        }
+      }
+    },
+    {
+      "name": "6. Suivre un Signalement Citoyen",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/reports/RPT-POSTMAN-PASS-001",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reports", "RPT-POSTMAN-PASS-001"]
+        }
+      }
+    },
+    {
+      "name": "7. Lister les Tickets Municipaux",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        }
+      }
+    },
+    {
+      "name": "8. Authentification de l'Agent Municipal",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"municipal-staff-secret-2026\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "9. Mettre à Jour le Statut d'un Ticket (Protégé)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer municipal-staff-secret-2026" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"actor\": \"agent_postman\",\n  \"notes\": \"Chantier démarré suite à vérification terrain.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/TKT-2026-00017/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "TKT-2026-00017", "status"]
+        }
+      }
+    },
+    {
+      "name": "10. Consulter la File de Modération (Protégé)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer municipal-staff-secret-2026" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/reviews?status=PENDING",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reviews"],
+          "query": [{ "key": "status", "value": "PENDING" }]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    }
+  ]
+}

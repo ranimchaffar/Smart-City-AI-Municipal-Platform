@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<title>Automated Municipal Ticket — AI Automation Project</title>
+<style>
+:root{
+  --ink:#14171c; --bg:#f2efe8; --panel:#ffffff;
+  --line:#e2ddd0; --accent:#ff5a36; --accent2:#0d9488;
+  --muted:#6b7280; --good:#0d9488; --warn:#d97706; --bad:#dc2626;
+  --shadow:0 14px 36px -14px rgba(20,20,20,.22);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#eef1f4; --bg:#0b0d11; --panel:#161a20; --line:#262b33; --muted:#8f9aa8; --shadow:0 14px 36px -14px rgba(0,0,0,.6);}}
+:root[data-theme="dark"]{--ink:#eef1f4; --bg:#0b0d11; --panel:#161a20; --line:#262b33; --muted:#8f9aa8;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{margin:0; background:
+  radial-gradient(900px 500px at 85% -10%, rgba(255,90,54,.10), transparent 60%),
+  radial-gradient(700px 400px at -10% 10%, rgba(13,148,136,.10), transparent 55%),
+  var(--bg);
+  color:var(--ink); font-family:"Inter",system-ui,-apple-system,sans-serif; line-height:1.62;}
+h1,h2,h3,.brand{font-family:"Space Grotesk","Inter",system-ui,sans-serif;}
+.app{display:flex; min-height:100%;}
+nav{width:250px; flex-shrink:0; border-right:1px solid var(--line); padding:28px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;}
+.brand{font-size:1rem; font-weight:700; letter-spacing:-.01em;} .brand small{display:block; font-family:"Inter",sans-serif; font-size:.68rem; color:var(--muted); font-weight:500; margin-top:2px; text-transform:uppercase; letter-spacing:.06em;}
+.tabs{list-style:none; padding:0; margin:22px 0 0;} .tabs li{margin-bottom:3px;}
+.tabs button{width:100%; text-align:left; background:none; border:none; cursor:pointer; font-family:"Inter",sans-serif; font-size:.85rem; font-weight:500; color:var(--muted); padding:9px 12px; border-radius:9px; display:flex; align-items:center; gap:9px; transition:background .15s,color .15s,transform .15s;}
+.tabs button:hover{color:var(--ink); background:var(--panel); transform:translateX(2px);}
+.tabs button.active{color:#fff; background:linear-gradient(135deg,var(--accent),#ff8a5c); font-weight:600; box-shadow:var(--shadow);}
+main{flex:1; padding:46px clamp(18px,5vw,64px); max-width:980px;}
+.panel{display:none;} .panel.active{display:block; animation:rise .38s cubic-bezier(.2,.7,.2,1);}
+@keyframes rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+h1{font-size:2rem; font-weight:700; margin:0 0 6px; letter-spacing:-.02em;}
+.tagline{color:var(--muted); font-size:.94rem; margin-bottom:30px;}
+h2{font-size:1.2rem; font-weight:600; margin:34px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px;} h2:first-of-type{margin-top:0;}
+h2::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--accent);}
+h3{font-size:1.02rem; font-weight:600; margin:20px 0 8px;}
+p{max-width:74ch;}
+.callout{border-left:3px solid var(--accent2); background:var(--panel); padding:14px 18px; border-radius:0 12px 12px 0; margin:16px 0; max-width:74ch; font-size:.9rem; box-shadow:var(--shadow);}
+.callout.risk{border-color:var(--bad);} .callout.tip{border-color:var(--good);}
+.callout .k{font-weight:700; display:block; margin-bottom:3px;}
+.pipeline{display:flex; flex-wrap:wrap; gap:0; align-items:center; margin:18px 0; font-size:.79rem;}
+.pipeline .step{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:9px 13px; white-space:nowrap; box-shadow:var(--shadow); font-weight:500;}
+.pipeline .arrow{padding:0 8px; color:var(--accent); font-weight:700; animation:pulse 1.8s ease-in-out infinite;}
+.pipeline .arrow:nth-child(4n+2){animation-delay:.3s;} .pipeline .arrow:nth-child(4n+3){animation-delay:.6s;}
+@keyframes pulse{0%,100%{opacity:.45; transform:translateX(0);} 50%{opacity:1; transform:translateX(3px);}}
+table{border-collapse:collapse; width:100%; margin:16px 0; font-size:.84rem; overflow-x:auto; display:block; border-radius:12px;}
+th,td{text-align:left; padding:10px 11px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{color:var(--muted); font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;}
+tr:hover td{background:var(--panel);}
+.timeline{list-style:none; padding:0; margin:18px 0;}
+.tl-item{position:relative; padding:0 0 24px 26px; border-left:2px solid var(--line); margin-left:5px;}
+.tl-item:last-child{border-color:transparent;}
+.tl-item::before{content:""; position:absolute; left:-7px; top:2px; width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);}
+.tl-item h3{margin:0 0 3px; font-size:1rem;} .tl-item .when{font-size:.72rem; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; font-weight:700;}
+a{color:var(--accent2);}
+ul.plain{padding-left:20px;} ul.plain li{margin-bottom:5px;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:700px){.grid2{grid-template-columns:1fr;}}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; font-size:.87rem; box-shadow:var(--shadow); transition:transform .2s,box-shadow .2s;}
+.card:hover{transform:translateY(-4px); box-shadow:0 20px 40px -16px rgba(255,90,54,.25);}
+.card h3{margin-top:0;}
+.flow{max-width:74ch;}
+.fnode{background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:.87rem; transition:border-color .2s, box-shadow .2s;}
+.fnode[open]{border-color:var(--accent); box-shadow:var(--shadow);}
+.fnode summary{list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center; gap:11px; font-weight:600;}
+.fnode summary::-webkit-details-marker{display:none;}
+.fnode summary::after{content:"+"; margin-left:auto; color:var(--muted); font-weight:400; font-size:1.1rem;}
+.fnode[open] summary::after{content:"–"; color:var(--accent);}
+.fnode p{margin:0; padding:0 16px 16px 47px; color:var(--muted); font-size:.86rem;}
+.fn{display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#ff8a5c); color:#fff; font-size:.74rem; flex-shrink:0; font-weight:700;}
+.flink{width:2px; height:16px; background:linear-gradient(var(--line),var(--accent),var(--line)); margin-left:28px; opacity:.5;}
+.ticket-wrap{max-width:480px; margin:22px 0; perspective:900px;}
+.ticket{background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 24px 60px -20px rgba(0,0,0,.3); transition:transform .35s;}
+.ticket-wrap:hover .ticket{transform:rotateX(2deg) rotateY(-2deg) translateY(-4px);}
+.ticket-head{background:linear-gradient(135deg,var(--accent2),#0a6f65); color:#fff; padding:20px 22px; position:relative;}
+.ticket-head .muni{font-size:.72rem; letter-spacing:.05em; opacity:.85; text-transform:uppercase;}
+.ticket-head .id{font-size:1.3rem; font-weight:700; margin-top:4px; letter-spacing:-.01em;}
+.ticket-body{padding:20px 22px;}
+.trow{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed var(--line); font-size:.86rem;}
+.trow:last-child{border-bottom:none;}
+.trow .l{color:var(--muted);}
+.trow .v{font-weight:600; text-align:right; max-width:60%;}
+.sev{display:inline-block; padding:3px 12px; border-radius:20px; font-size:.72rem; font-weight:700; color:#fff;}
+.sev.high{background:var(--bad);} .sev.med{background:var(--warn);} .sev.low{background:var(--good);}
+.ticket-photo{height:150px; background:repeating-linear-gradient(45deg,var(--line),var(--line) 10px,transparent 10px,transparent 20px); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:.78rem;}
+.ticket-foot{padding:15px 22px; background:rgba(13,148,136,.06); font-size:.76rem; color:var(--muted); border-top:1px dashed var(--line);}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:22px 0 8px;}
+@media (max-width:700px){.stats{grid-template-columns:repeat(2,1fr);}}
+.stat{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; text-align:center; box-shadow:var(--shadow);}
+.stat .n{font-family:"Space Grotesk",sans-serif; font-size:1.6rem; font-weight:700; color:var(--accent);}
+.stat .l{font-size:.72rem; color:var(--muted); margin-top:2px;}
+@media (max-width:760px){
+  .app{flex-direction:column;} nav{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--line); padding:16px;}
+  .tabs{display:flex; overflow-x:auto; gap:4px; margin-top:12px;} .tabs li{margin:0;}
+  .tabs button{white-space:nowrap;}
+  main{padding:26px 16px 60px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav>
+    <div class="brand">🎫 Automated Municipal Ticket<small>AI Automation — 5DS Esprit</small></div>
+    <a href="https://claude.ai/artifact/1oPcxJqKtrmaiFP1KZDKSq" style="display:inline-block; margin-top:10px; font-family:system-ui,sans-serif; font-size:.75rem; color:var(--muted); border:1px solid var(--line); border-radius:20px; padding:3px 10px;">🇫🇷 Version française</a>
+    <ul class="tabs">
+      <li><button class="active" data-tab="usecase">🎯 Use Case</button></li>
+      <li><button data-tab="agents">🤖 Agents</button></li>
+      <li><button data-tab="workflow">⚙️ n8n Workflow</button></li>
+      <li><button data-tab="diff">✨ Differentiators</button></li>
+      <li><button data-tab="data">📚 Data &amp; RAG</button></li>
+      <li><button data-tab="prompts">💬 Prompts</button></li>
+      <li><button data-tab="ticket">🎫 Sample Ticket</button></li>
+      <li><button data-tab="stack">🧩 Tech Stack</button></li>
+      <li><button data-tab="roadmap">🗓️ Timeline</button></li>
+      <li><button data-tab="deliverables">📦 Deliverables</button></li>
+    </ul>
+  </nav>
+  <main>
+
+    <section class="panel active" id="usecase">
+      <h1>The chosen use case</h1>
+      <div class="tagline">Citizen reporting of urban infrastructure issues, Tunisian context</div>
+
+      <div class="stats">
+        <div class="stat"><div class="n" data-count="6">0</div><div class="l">agents</div></div>
+        <div class="stat"><div class="n" data-count="11">0</div><div class="l">n8n nodes</div></div>
+        <div class="stat"><div class="n" data-count="60">0</div><div class="l">seconds max</div></div>
+        <div class="stat"><div class="n" data-count="5">0</div><div class="l">differentiators</div></div>
+      </div>
+
+      <h2>The scenario</h2>
+      <p>A citizen sends a photo of an urban problem (pothole, leak, broken streetlight...) along with a voice or text message via <strong>Telegram</strong>. In under a minute they receive an acknowledgment with a tracking number. On the municipality's side, a structured ticket — already classified, prioritized and routed to the right department — appears in a shared tracker.</p>
+
+      <h2>Why Telegram rather than WhatsApp</h2>
+      <p>The WhatsApp Business API requires a Meta business verification that is impossible to obtain in 5 weeks. The Telegram Bot API is free, instant, and n8n's <code>Telegram Trigger</code> node natively handles photo + audio + text — which makes a real live demo actually feasible on defense day.</p>
+
+      <h2>Why this output "matters" to the jury</h2>
+      <div class="grid2">
+        <div class="card"><h3>Not just a chatbot</h3>The output is a concrete artifact independent of the chat: a headered PDF ticket, a row in a Google Sheet/Trello visible to the whole team, an acknowledgment with a case number.</div>
+        <div class="card"><h3>Traceable end to end</h3>Every step (transcription, vision, classification, retrieval, formatting) is a visible, replayable n8n node — useful for the 10-minute Q&amp;A where every member must be able to answer on any part.</div>
+      </div>
+
+      <h2>Categories covered</h2>
+      <p>Potholes / damaged roads · damaged sidewalks · broken signs · defective street lighting · illegal waste · damaged urban furniture · visible water leaks</p>
+    </section>
+
+    <section class="panel" id="agents">
+      <h1>Multi-agent architecture</h1>
+      <div class="tagline">Choice: Router → sequential chain (not a monolithic orchestrator)</div>
+
+      <div class="pipeline">
+        <div class="step">Telegram (photo+text/audio)</div><div class="arrow">→</div>
+        <div class="step">Intake Agent</div><div class="arrow">→</div>
+        <div class="step">Vision Agent</div><div class="arrow">→</div>
+        <div class="step">Router Agent</div><div class="arrow">→</div>
+        <div class="step">Knowledge Agent (RAG)</div><div class="arrow">→</div>
+        <div class="step">Report Agent</div><div class="arrow">→</div>
+        <div class="step">Ticket PDF + Sheet + citizen reply</div>
+      </div>
+
+      <table>
+        <tr><th>Agent</th><th>Role</th><th>Tools / access</th><th>Input → Output</th></tr>
+        <tr><td>Intake Agent</td><td>Receives and normalizes the input</td><td>Telegram Trigger, Whisper (audio transcription)</td><td>Raw message → normalized text + image</td></tr>
+        <tr><td>Vision Agent</td><td>Describes and classifies the visual problem</td><td>VLM (GPT-4V / Claude Vision), strict JSON-output prompt</td><td>Image → {category, severity, description}</td></tr>
+        <tr><td>Router Agent</td><td>Decides which municipal department is concerned</td><td>Rules + lightweight LLM</td><td>Category → target department</td></tr>
+        <tr><td>Knowledge Agent</td><td>Retrieves the matching intervention procedure</td><td>Vector store (Chroma/Qdrant) via HTTP Request node</td><td>{category, department} → procedure + deadline</td></tr>
+        <tr><td>Report Agent</td><td>Generates the final ticket and pushes it to the tracker</td><td>HTML-to-PDF, Google Sheets/Trello API</td><td>Full context → PDF + tracker row + citizen reply</td></tr>
+      </table>
+
+      <h2>Justification (for the report)</h2>
+      <p>A single orchestrator would need to handle transcription, vision, classification, retrieval and formatting in one giant prompt — undebuggable and impossible to document prompt by prompt (20% of the grade). The sequential split with a router isolates each failure and allows independent iteration per prompt, exactly what the brief asks for ("show a before/after per key prompt").</p>
+      <div class="callout risk"><span class="k">Anticipate in Q&amp;A</span>Why not a hierarchical orchestrator? Because the flow is inherently linear (an image cannot be routed before it is classified) — a master-worker setup would add complexity with no benefit for this use case.</div>
+
+      <div class="callout tip"><span class="k">Extension — 6th agent</span>A <strong>Follow-up Agent</strong> can be added after the Report Agent to monitor the ticket's lifecycle (see the Differentiators tab). Easily justified as a natural evolution of the sequential chain.</div>
+    </section>
+
+    <section class="panel" id="workflow">
+      <h1>n8n workflow structure</h1>
+      <div class="tagline">Node by node, ready to implement</div>
+
+      <p class="tagline" style="margin-bottom:18px">Click each node to see its implementation detail.</p>
+      <div class="flow">
+        <details class="fnode" open><summary><span class="fn">1</span> Telegram Trigger</summary><p>Listens for new messages (photo, voice, text) sent to the project's bot.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">2</span> Switch — message type</summary><p>Routes based on photo / audio / text to prepare the right downstream processing.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">3</span> HTTP Request → Whisper</summary><p>Transcribes the audio into text if the message is a voice note.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">4</span> HTTP Request → VLM (Vision Agent)</summary><p>Sends the image + structured prompt, receives a JSON <code>{category, severity, description}</code>.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">5</span> Function node — Router Agent</summary><p>Maps the detected category to the concerned municipal department via a rules table.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">6</span> HTTP Request → Vector Store</summary><p>Queries the RAG (top-k) with category + description as the query.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">7</span> HTTP Request → LLM — Report Agent</summary><p>Composes the final structured ticket from all accumulated context.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">8</span> HTML → PDF</summary><p>Generates the final ticket PDF with a municipal letterhead, ready to archive.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">9</span> Google Sheets / Trello</summary><p>Adds a row or card to the shared tracker, visible to the whole team.</p></details>
+        <div class="flink"></div>
+        <details class="fnode"><summary><span class="fn">10</span> Telegram — reply</summary><p>Sends the citizen the acknowledgment with their case number.</p></details>
+      </div>
+
+      <div class="callout risk" style="margin-top:24px"><span class="k">Node 11 — global Error Trigger</span>Catches failures from any node in the pipeline and notifies the team on a dedicated Telegram/Slack channel. Showing it visibly in the exported JSON proves error handling was designed, not improvised — a good point for Q&amp;A.</div>
+    </section>
+
+    <section class="panel" id="diff">
+      <h1>Differentiators</h1>
+      <div class="tagline">What takes the project beyond a plain "report → ticket" pipeline</div>
+
+      <div class="card" style="margin-bottom:14px">
+        <h3>1 · Automatic duplicate merging</h3>
+        <p style="margin:0 0 8px">If several citizens report the same issue within a close radius within 48h, the system merges them into a single ticket with a report counter, instead of creating several.</p>
+        <p style="margin:0"><strong>Implementation:</strong> before the Report Agent, a node compares the embedding of the new description + GPS distance against recently opened tickets in the vector store; above a similarity threshold, it increments the existing ticket rather than creating a new one.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <h3>2 · Follow-up Agent — the ticket has a lifecycle</h3>
+        <p style="margin:0 0 8px">A 6th agent that automatically escalates if the announced deadline is missed, turning the system from "generates a document" into "manages a process".</p>
+        <p style="margin:0"><strong>Implementation:</strong> daily <code>Schedule Trigger</code> node + <code>Wait</code>, checking the tracker's status; on overdue, it re-pings the assigned department and notifies the citizen via Telegram.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <h3>3 · Reply in the detected language/dialect</h3>
+        <p style="margin:0 0 8px">The system detects whether the message is in Modern Standard Arabic, Tunisian derja, or French, and replies in the same language — real citizen accessibility.</p>
+        <p style="margin:0"><strong>Implementation:</strong> a language-detection prompt upstream of the Report Agent, whose output selects the Telegram reply template.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <h3>4 · Context-aware prioritization via OSM</h3>
+        <p style="margin:0 0 8px">The Router Agent adjusts priority based on proximity to a school, hospital, or busy road, rather than a fixed category→priority mapping.</p>
+        <p style="margin:0"><strong>Implementation:</strong> HTTP Request node to the Overpass API (OSM) with the report's GPS coordinates, result injected into the Router Agent's prompt.</p>
+      </div>
+
+      <div class="card">
+        <h3>5 · Public transparency map</h3>
+        <p style="margin:0 0 8px">A simple view of open reports by neighborhood — a civic-tech gesture beyond an internal municipal tool.</p>
+        <p style="margin:0"><strong>Implementation:</strong> a read-only published Google Sheet, or a small web page fed by the same tracker used by the Report Agent.</p>
+      </div>
+
+      <div class="callout tip" style="margin-top:18px"><span class="k">For the defense</span>Ideas 1 and 2 are the ones to lead with: they add the most technical depth (new reasoning, a justifiable new agent) for the implementation effort involved.</div>
+    </section>
+
+    <section class="panel" id="data">
+      <h1>Data &amp; RAG</h1>
+
+      <h2>Corpus</h2>
+      <table>
+        <tr><th>Source</th><th>Content</th><th>Format</th></tr>
+        <tr><td>Organic Law n°2018-29 (Tunisian Local Authorities Code)</td><td>Legal framework of municipal competencies</td><td>Public PDF</td></tr>
+        <tr><td>Intervention procedures written by the team</td><td>Deadlines and steps per defect category, realistic but stated as a working hypothesis</td><td>Structured Markdown</td></tr>
+        <tr><td>Citizen FAQ (written by the team)</td><td>Frequently asked questions about case tracking</td><td>Markdown</td></tr>
+      </table>
+      <div class="callout tip"><span class="k">Grading tip</span>Explicitly document that precise municipal procedures are not publicly available, and that you built a realistic set as a working hypothesis. The brief rewards this kind of transparency ("reporting what did not work earns credit").</div>
+
+      <h2>Chunking strategy (compare, valued by the brief)</h2>
+      <table>
+        <tr><th>Strategy</th><th>Detail</th><th>Advantage / limit</th></tr>
+        <tr><td>Structural (chosen)</td><td>Split by article/section, ~400-500 tokens, ~50 overlap</td><td>Preserves legal meaning; harder to automate on poorly structured text</td></tr>
+        <tr><td>Fixed size (comparison)</td><td>512 tokens, 50 overlap, no structural awareness</td><td>Simple to implement; can split an article in half and lose meaning</td></tr>
+      </table>
+
+      <h2>Embedding &amp; vector store</h2>
+      <ul class="plain">
+        <li><strong>Embedding:</strong> multilingual model (<code>multilingual-e5-large</code> or <code>text-embedding-3-small</code>) — corpus in French, citizen messages potentially in Arabic/Tounsi</li>
+        <li><strong>Vector store:</strong> Chroma or Qdrant, called from n8n via an HTTP Request node</li>
+        <li><strong>Retrieval:</strong> top-k=3, no reranking in v1 (justified as a deliberate simplicity trade-off)</li>
+      </ul>
+
+      <h2>Retrieval evaluation (mandatory deliverable)</h2>
+      <p>10 to 15 test queries such as "water leak on street X", "dangerous electrical pole", "broken sidewalk near school" — manual relevance scoring of the top-3 results, logged in a table with comments.</p>
+    </section>
+
+    <section class="panel" id="prompts">
+      <h1>Prompt library</h1>
+      <div class="tagline">Mandatory separate deliverable — 20% of the grade</div>
+
+      <p>For each key prompt, document: role in the system, technique used, observed failure case, applied fix.</p>
+
+      <h2>Example — Vision Agent</h2>
+      <table>
+        <tr><th>Version</th><th>Prompt</th><th>Observed result</th></tr>
+        <tr><td>v1</td><td>Free-form prompt: "Describe the problem in this image"</td><td>Free-text output, unparseable by the Router Agent</td></tr>
+        <tr><td>v2</td><td>Strict JSON output imposed + guardrail: "If no visible degradation, return category: none"</td><td>Directly usable output; handles the "off-topic photo" case</td></tr>
+      </table>
+
+      <h2>Techniques to cover in the library</h2>
+      <div class="grid2">
+        <div class="card"><h3>Structured output</h3>Vision Agent, Router Agent — JSON output with an imposed schema to be consumed by the next node</div>
+        <div class="card"><h3>Guardrails</h3>Vision Agent — reject off-topic photos; Report Agent — refuse to generate a ticket if required fields are missing</div>
+        <div class="card"><h3>Chain-of-thought</h3>Router Agent — explicit reasoning before choosing the department, useful for Q&amp;A</div>
+        <div class="card"><h3>Role prompting</h3>Report Agent — "You are a Tunisian municipal administrative agent" to set the ticket's tone</div>
+        <div class="card"><h3>Few-shot</h3>Knowledge Agent — 2-3 examples of good retrieval queries to stabilize reformulation</div>
+      </div>
+    </section>
+
+    <section class="panel" id="ticket">
+      <h1>Sample generated ticket</h1>
+      <div class="tagline">Actual output produced by the Report Agent (node 7 → 8) from a citizen report</div>
+
+      <div class="ticket-wrap">
+        <div class="ticket">
+          <div class="ticket-head">
+            <div class="muni">TUNIS MUNICIPALITY — ROADS DEPARTMENT</div>
+            <div class="id">Ticket #TN-2026-04831</div>
+          </div>
+          <div class="ticket-photo">📷 attached photo — Avenue Habib Bourguiba, corner Rue de Rome</div>
+          <div class="ticket-body">
+            <div class="trow"><span class="l">Category</span><span class="v">Road damage — pothole</span></div>
+            <div class="trow"><span class="l">Severity</span><span class="v"><span class="sev high">High</span></span></div>
+            <div class="trow"><span class="l">Estimated area</span><span class="v">≈ 1.8 m²</span></div>
+            <div class="trow"><span class="l">Identified risk</span><span class="v">Vehicle and two-wheeler safety</span></div>
+            <div class="trow"><span class="l">Location</span><span class="v">Av. Habib Bourguiba, Tunis</span></div>
+            <div class="trow"><span class="l">Assigned department</span><span class="v">Roads — standard 5 business days</span></div>
+            <div class="trow"><span class="l">Procedure (RAG)</span><span class="v">Road intervention — high priority</span></div>
+            <div class="trow"><span class="l">Reported on</span><span class="v">Sep 27, 2026 — 14:32</span></div>
+          </div>
+          <div class="ticket-foot">Evidence: image analyzed and confirmed by the Vision Agent · Citizen notified via Telegram with this tracking number</div>
+        </div>
+      </div>
+
+      <div class="callout tip"><span class="k">What this ticket demonstrates to the jury</span>Every field comes from a different agent: category/severity from the Vision Agent, department from the Router Agent, procedure from the Knowledge Agent (RAG), formatting from the Report Agent. The PDF is the final artifact — not just a chat reply.</div>
+    </section>
+
+    <section class="panel" id="stack">
+      <h1>Technology stack</h1>
+
+      <table>
+        <tr><th>Tech</th><th>Role in the project</th><th>Why this choice</th></tr>
+        <tr><td>n8n</td><td>Automation backbone — orchestrates every node in the workflow</td><td>Open-source, free self-hosting, native webhook/HTTP/file handling; a Zapier/Make alternative with no free-tier task limit</td></tr>
+        <tr><td>Telegram Bot API</td><td>Citizen entry point — receives photo/audio/text, sends the reply</td><td>Free, no business verification unlike WhatsApp Business, native n8n integration</td></tr>
+        <tr><td>Whisper (OpenAI)</td><td>Voice message transcription</td><td>Multilingual, robust for Arabic/French, accessible via a simple API</td></tr>
+        <tr><td>VLM (GPT-4V / Claude Vision)</td><td>Image analysis, classification, severity estimation</td><td>No model training needed — the brief evaluates orchestration, not raw ML performance</td></tr>
+        <tr><td>Chroma / Qdrant</td><td>Vector store for the RAG</td><td>Lightweight, free locally, simple HTTP API to call from n8n</td></tr>
+        <tr><td>multilingual-e5-large</td><td>Generates embeddings for the corpus and queries</td><td>Handles French and Arabic, needed given the bilingual nature of citizen messages</td></tr>
+        <tr><td>HTML-to-PDF (n8n node)</td><td>Generates the final ticket as a PDF with a municipal letterhead</td><td>Produces a tangible artifact rather than a plain text reply</td></tr>
+        <tr><td>Google Sheets / Trello API</td><td>Shared tracker visible to the whole team and the jury</td><td>Demonstrates the system's concrete action beyond the chat</td></tr>
+      </table>
+
+      <div class="callout risk"><span class="k">Cost warning</span>The brief reminds you: watch your API costs. Plan for a test account with a limited quota, and document in the report an estimated cost per processed ticket (VLM + Whisper + Report Agent LLM).</div>
+    </section>
+
+    <section class="panel" id="roadmap">
+      <h1>Timeline — 5 weeks</h1>
+      <ul class="timeline">
+        <li class="tl-item"><div class="when">Week 1</div><h3>Scoping</h3><p>Use case scoped, team roles defined, n8n installed, first draft of the agent architecture.</p></li>
+        <li class="tl-item"><div class="when">Week 2</div><h3>Corpus &amp; RAG</h3><p>Corpus collected and structured, chunking implemented, first retrieval tests.</p></li>
+        <li class="tl-item"><div class="when">Week 3</div><h3>Agents &amp; multimodality</h3><p>Agents implemented and connected, prompts v1, voice/vision module working in isolation.</p></li>
+        <li class="tl-item"><div class="when">Week 4</div><h3>End-to-end integration</h3><p>Full pipeline connected, prompt iteration based on observed failures, error handling (node 11).</p></li>
+        <li class="tl-item"><div class="when">Week 5</div><h3>Testing &amp; demo</h3><p>Final testing, report writing (8 pages max), 15-minute demo rehearsal.</p></li>
+      </ul>
+      <div class="callout tip"><span class="k">Weekly check-in</span>Not graded separately, but a missed or empty check-in penalizes the final grade. Every team member should have a short update to present each week.</div>
+    </section>
+
+    <section class="panel" id="deliverables">
+      <h1>Deliverables</h1>
+
+      <h2>Due the day before the final session</h2>
+      <ul class="plain">
+        <li>The exported workflow (n8n JSON) or the code repository, with instructions to run it</li>
+        <li>A technical report, 8 pages maximum, covering the 5 mandatory requirements</li>
+        <li>The prompt library, as a separate file</li>
+        <li>A short retrieval evaluation (test queries, results, comments)</li>
+      </ul>
+
+      <h2>Final session</h2>
+      <p>15-minute live demo + 10 minutes of questions. Every team member must speak and be able to answer questions on any part of the system.</p>
+    </section>
+
+  </main>
+</div>
+<script>
+document.querySelectorAll('.tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+document.querySelectorAll('.stat .n').forEach(el=>{
+  const target = parseInt(el.dataset.count,10);
+  let cur = 0;
+  const step = Math.max(1, Math.round(target/30));
+  const t = setInterval(()=>{
+    cur += step;
+    if(cur >= target){ cur = target; clearInterval(t); }
+    el.textContent = cur;
+  }, 25);
+});
+</script>
+</body>
+</html>

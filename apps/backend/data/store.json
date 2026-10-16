@@ -1,0 +1,765 @@
+{
+  "reports": {
+    "RPT-INIT-001": {
+      "report_id": "RPT-INIT-001",
+      "description": "Deep pothole on Avenue Habib Bourguiba causing tire blowouts",
+      "media_ref": "mock://pothole",
+      "location": {
+        "address": "Av. Habib Bourguiba, Tunis",
+        "latitude": 36.8008,
+        "longitude": 10.18
+      },
+      "decision": "PASS",
+      "status": "TICKET_CREATED",
+      "demo_mode": true,
+      "created_at": "2026-10-15T08:52:12.288Z"
+    },
+    "RPT-INIT-002": {
+      "report_id": "RPT-INIT-002",
+      "description": "Broken streetlight flickering and causing dark alley risk",
+      "media_ref": "mock://streetlight",
+      "location": {
+        "address": "Rue de Rome, Tunis",
+        "latitude": 36.8015,
+        "longitude": 10.182
+      },
+      "decision": "PASS",
+      "status": "ASSIGNED",
+      "demo_mode": true,
+      "created_at": "2026-10-15T14:52:12.288Z"
+    },
+    "RPT-INIT-003": {
+      "report_id": "RPT-INIT-003",
+      "description": "Overflowing garbage bin near Central Market attracting strays",
+      "media_ref": "mock://waste",
+      "location": {
+        "address": "Rue d'Espagne, Central Market",
+        "latitude": 36.797,
+        "longitude": 10.178
+      },
+      "decision": "PASS",
+      "status": "IN_PROGRESS",
+      "demo_mode": true,
+      "created_at": "2026-10-15T20:52:12.288Z"
+    },
+    "RPT-INIT-004": {
+      "report_id": "RPT-INIT-004",
+      "description": "High pressure clean water main leaking into pavement",
+      "media_ref": "mock://water_leak",
+      "location": {
+        "address": "Boulevard du 14 Janvier, Tunis",
+        "latitude": 36.805,
+        "longitude": 10.185
+      },
+      "decision": "PASS",
+      "status": "RESOLVED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T02:52:12.288Z"
+    },
+    "RPT-INIT-005": {
+      "report_id": "RPT-INIT-005",
+      "description": "Citizen reported broken street sign but image shows normal cat",
+      "media_ref": "mock://unrelated",
+      "location": {
+        "address": "Avenue de Paris",
+        "latitude": 36.804,
+        "longitude": 10.181
+      },
+      "decision": "REVIEW",
+      "status": "REVIEW_REQUIRED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T06:52:12.288Z"
+    },
+    "RPT-TEST-POTHOLE-1792140900500": {
+      "report_id": "RPT-TEST-POTHOLE-1792140900500",
+      "description": "A deep pothole is dangerous for drivers on the road.",
+      "media_ref": "mock://pothole",
+      "location": {
+        "address": "Demo Avenue (fictional)",
+        "latitude": null,
+        "longitude": null
+      },
+      "decision": "PASS",
+      "status": "RESOLVED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T08:55:00.573Z"
+    },
+    "RPT-TEST-MISMATCH-1792140900581": {
+      "report_id": "RPT-TEST-MISMATCH-1792140900581",
+      "description": "There is a pothole on the road.",
+      "media_ref": "mock://streetlight",
+      "location": null,
+      "decision": "PASS",
+      "status": "TICKET_CREATED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T08:55:00.583Z"
+    },
+    "RPT-TEST-REJECT-1792140900603": {
+      "report_id": "RPT-TEST-REJECT-1792140900603",
+      "description": "A pothole is blocking this road.",
+      "media_ref": "",
+      "location": null,
+      "decision": "REJECT",
+      "status": "REJECTED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T08:55:00.610Z"
+    },
+    "RPT-KNOW-FAIL": {
+      "report_id": "RPT-KNOW-FAIL",
+      "description": "A deep pothole is dangerous for drivers on the road.",
+      "media_ref": "mock://pothole",
+      "location": {
+        "address": "Demo Avenue (fictional)",
+        "latitude": null,
+        "longitude": null
+      },
+      "decision": "PASS",
+      "status": "RECEIVED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T09:25:37.424Z"
+    },
+    "RPT-KNOW-EMPTY": {
+      "report_id": "RPT-KNOW-EMPTY",
+      "description": "A deep pothole is dangerous for drivers on the road.",
+      "media_ref": "mock://pothole",
+      "location": {
+        "address": "Demo Avenue (fictional)",
+        "latitude": null,
+        "longitude": null
+      },
+      "decision": "PASS",
+      "status": "RECEIVED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T09:25:37.439Z"
+    },
+    "RPT-KNOW-WRONG": {
+      "report_id": "RPT-KNOW-WRONG",
+      "description": "A deep pothole is dangerous for drivers on the road.",
+      "media_ref": "mock://pothole",
+      "location": {
+        "address": "Demo Avenue (fictional)",
+        "latitude": null,
+        "longitude": null
+      },
+      "decision": "PASS",
+      "status": "RECEIVED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T09:25:37.454Z"
+    },
+    "RPT-TEST-POTHOLE-1792142737308": {
+      "report_id": "RPT-TEST-POTHOLE-1792142737308",
+      "description": "A deep pothole is dangerous for drivers on the road.",
+      "media_ref": "mock://pothole",
+      "location": {
+        "address": "Demo Avenue (fictional)",
+        "latitude": null,
+        "longitude": null
+      },
+      "decision": "PASS",
+      "status": "RESOLVED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T09:25:37.378Z"
+    },
+    "RPT-TEST-MISMATCH-1792142737384": {
+      "report_id": "RPT-TEST-MISMATCH-1792142737384",
+      "description": "There is a pothole on the road.",
+      "media_ref": "mock://streetlight",
+      "location": null,
+      "decision": "PASS",
+      "status": "TICKET_CREATED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T09:25:37.386Z"
+    },
+    "RPT-TEST-REJECT-1792142737410": {
+      "report_id": "RPT-TEST-REJECT-1792142737410",
+      "description": "A pothole is blocking this road.",
+      "media_ref": "",
+      "location": null,
+      "decision": "REJECT",
+      "status": "REJECTED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T09:25:37.414Z"
+    },
+    "RPT-2026-5448": {
+      "report_id": "RPT-2026-5448",
+      "description": "A deep pothole is dangerous for drivers on the road surface.",
+      "media_ref": "mock://unrelated",
+      "location": {
+        "address": "Detected GPS Coordinates",
+        "latitude": 36.902463,
+        "longitude": 10.187438
+      },
+      "decision": "PASS",
+      "status": "REVIEW_REQUIRED",
+      "demo_mode": true,
+      "created_at": "2026-10-16T18:51:24.302Z"
+    }
+  },
+  "tickets": {
+    "TKT-2026-00001": {
+      "ticket_id": "TKT-2026-00001",
+      "report_id": "RPT-INIT-001",
+      "status": "TICKET_CREATED",
+      "category": "ROAD_DAMAGE",
+      "severity": "HIGH",
+      "priority": "HIGH",
+      "department": "ROADS_DEPARTMENT",
+      "location": {
+        "address": "Av. Habib Bourguiba, Tunis",
+        "latitude": 36.8008,
+        "longitude": 10.18
+      },
+      "anonymized_media_ref": "safe/pothole_anonymized.jpg",
+      "procedure": "Urgent asphalt patching procedure: Dispatch emergency road brigade within 24h, place hazard cones, patch with cold asphalt mix until permanent hot mix resurfacing.",
+      "sources": [
+        {
+          "document_title": "Tunis Municipal Road Maintenance Protocol (Demo)",
+          "source_url": null,
+          "chunk_id": "doc-roads-01",
+          "search_score": 0.92,
+          "is_official": false,
+          "is_mock": true
+        }
+      ],
+      "deadline": "2026-10-17T08:52:12.288Z",
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "is_mock": true,
+      "created_at": "2026-10-15T08:52:12.288Z",
+      "updated_at": "2026-10-15T08:52:12.288Z"
+    },
+    "TKT-2026-00002": {
+      "ticket_id": "TKT-2026-00002",
+      "report_id": "RPT-INIT-002",
+      "status": "ASSIGNED",
+      "category": "STREET_LIGHTING",
+      "severity": "MEDIUM",
+      "priority": "NORMAL",
+      "department": "PUBLIC_LIGHTING_DEPARTMENT",
+      "location": {
+        "address": "Rue de Rome, Tunis",
+        "latitude": 36.8015,
+        "longitude": 10.182
+      },
+      "anonymized_media_ref": "safe/streetlight_anonymized.jpg",
+      "procedure": "Public lighting inspection: Inspect ballast and wiring connection, replace defective bulb with LED fixture, test night sensor.",
+      "sources": [
+        {
+          "document_title": "Public Lighting Quality Assurance Guidelines",
+          "source_url": null,
+          "chunk_id": "doc-lighting-03",
+          "search_score": 0.88,
+          "is_official": false,
+          "is_mock": true
+        }
+      ],
+      "deadline": "2026-10-18T08:52:12.288Z",
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "is_mock": true,
+      "created_at": "2026-10-15T14:52:12.288Z",
+      "updated_at": "2026-10-15T14:52:12.288Z"
+    },
+    "TKT-2026-00003": {
+      "ticket_id": "TKT-2026-00003",
+      "report_id": "RPT-INIT-003",
+      "status": "IN_PROGRESS",
+      "category": "WASTE",
+      "severity": "MEDIUM",
+      "priority": "NORMAL",
+      "department": "SANITATION_DEPARTMENT",
+      "location": {
+        "address": "Rue d'Espagne, Central Market",
+        "latitude": 36.797,
+        "longitude": 10.178
+      },
+      "anonymized_media_ref": "safe/waste_anonymized.jpg",
+      "procedure": "Sanitation collection dispatch: Dispatch heavy-duty compactor truck, clean immediate surrounding pavement with pressure wash disinfectant, log volume.",
+      "sources": [
+        {
+          "document_title": "Urban Cleanliness and Waste Management Regulation",
+          "source_url": null,
+          "chunk_id": "doc-sanitation-02",
+          "search_score": 0.85,
+          "is_official": false,
+          "is_mock": true
+        }
+      ],
+      "deadline": "2026-10-16T20:52:12.288Z",
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "is_mock": true,
+      "created_at": "2026-10-15T20:52:12.288Z",
+      "updated_at": "2026-10-15T20:52:12.288Z"
+    },
+    "TKT-2026-00004": {
+      "ticket_id": "TKT-2026-00004",
+      "report_id": "RPT-INIT-004",
+      "status": "RESOLVED",
+      "category": "WATER_LEAK",
+      "severity": "HIGH",
+      "priority": "HIGH",
+      "department": "WATER_SERVICES_DEPARTMENT",
+      "location": {
+        "address": "Boulevard du 14 Janvier, Tunis",
+        "latitude": 36.805,
+        "longitude": 10.185
+      },
+      "anonymized_media_ref": "safe/water_leak_anonymized.jpg",
+      "procedure": "Drinking water network intervention: Shut off isolation valve V-12, excavate pipe segment, install stainless steel repair clamp, restore water pressure and test clarity.",
+      "sources": [
+        {
+          "document_title": "Emergency Potable Water Repair Standards",
+          "source_url": null,
+          "chunk_id": "doc-water-04",
+          "search_score": 0.95,
+          "is_official": false,
+          "is_mock": true
+        }
+      ],
+      "deadline": "2026-10-16T06:52:12.288Z",
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "is_mock": true,
+      "created_at": "2026-10-16T02:52:12.288Z",
+      "updated_at": "2026-10-16T08:52:12.288Z"
+    },
+    "TKT-2026-00005": {
+      "ticket_id": "TKT-2026-00005",
+      "report_id": "RPT-TEST-POTHOLE-1792140900500",
+      "status": "RESOLVED",
+      "category": "ROAD_DAMAGE",
+      "severity": "HIGH",
+      "priority": "HIGH",
+      "department": "ROADS_DEPARTMENT",
+      "location": {
+        "latitude": null,
+        "longitude": null,
+        "address": "Demo Avenue (fictional)"
+      },
+      "anonymized_media_ref": null,
+      "procedure": "DEMO ONLY: send the report to ROADS_DEPARTMENT for human assessment. This is not an official municipal procedure.",
+      "sources": [
+        {
+          "document_title": "DEMO PLACEHOLDER - NOT MUNICIPAL POLICY",
+          "source_url": null,
+          "chunk_id": "mock-road_damage-01",
+          "search_score": null,
+          "is_official": false,
+          "is_mock": true
+        }
+      ],
+      "deadline": null,
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "is_mock": true,
+      "created_at": "2026-10-16T08:55:00.552Z",
+      "updated_at": "2026-10-16T08:55:00.695Z"
+    },
+    "TKT-2026-00006": {
+      "ticket_id": "TKT-2026-00006",
+      "report_id": "RPT-TEST-MISMATCH-1792140900581",
+      "category": "STREET_LIGHTING",
+      "severity": "MEDIUM",
+      "priority": "NORMAL",
+      "department": "PUBLIC_LIGHTING_DEPARTMENT",
+      "status": "TICKET_CREATED",
+      "location": null,
+      "anonymized_media_ref": "safe/reviewed_image.jpg",
+      "procedure": "Manual supervisor approval: Replace defective fixture.",
+      "sources": [
+        {
+          "document_title": "Manual Supervisor Triage Assessment",
+          "source_url": null,
+          "chunk_id": "manual-review-override",
+          "search_score": 1,
+          "is_official": true,
+          "is_mock": false
+        }
+      ],
+      "deadline": "2026-10-19T08:55:00.708Z",
+      "is_mock": false,
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "created_at": "2026-10-16T08:55:00.708Z",
+      "updated_at": "2026-10-16T08:55:00.708Z"
+    },
+    "TKT-2026-00007": {
+      "ticket_id": "TKT-2026-00007",
+      "report_id": "RPT-TEST-POTHOLE-1792142737308",
+      "status": "RESOLVED",
+      "category": "ROAD_DAMAGE",
+      "severity": "HIGH",
+      "priority": "HIGH",
+      "department": "ROADS_DEPARTMENT",
+      "location": {
+        "latitude": null,
+        "longitude": null,
+        "address": "Demo Avenue (fictional)"
+      },
+      "anonymized_media_ref": null,
+      "procedure": "DEMO ONLY: send the report to ROADS_DEPARTMENT for human assessment. This is not an official municipal procedure.",
+      "sources": [
+        {
+          "document_title": "DEMO PLACEHOLDER - NOT MUNICIPAL POLICY",
+          "source_url": null,
+          "chunk_id": "mock-road_damage-01",
+          "search_score": null,
+          "is_official": false,
+          "is_mock": true
+        }
+      ],
+      "deadline": null,
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "is_mock": true,
+      "created_at": "2026-10-16T09:25:37.360Z",
+      "updated_at": "2026-10-16T09:25:37.501Z"
+    },
+    "TKT-2026-00008": {
+      "ticket_id": "TKT-2026-00008",
+      "report_id": "RPT-TEST-MISMATCH-1792142737384",
+      "category": "STREET_LIGHTING",
+      "severity": "MEDIUM",
+      "priority": "NORMAL",
+      "department": "PUBLIC_LIGHTING_DEPARTMENT",
+      "status": "TICKET_CREATED",
+      "location": null,
+      "anonymized_media_ref": "safe/reviewed_image.jpg",
+      "procedure": "Manual supervisor approval: Replace defective fixture.",
+      "sources": [
+        {
+          "document_title": "Manual Supervisor Triage Assessment",
+          "source_url": null,
+          "chunk_id": "manual-review-override",
+          "search_score": 1,
+          "is_official": true,
+          "is_mock": false
+        }
+      ],
+      "deadline": "2026-10-19T09:25:37.532Z",
+      "is_mock": false,
+      "persisted": true,
+      "storage_status": "PERSISTED",
+      "created_at": "2026-10-16T09:25:37.532Z",
+      "updated_at": "2026-10-16T09:25:37.532Z"
+    }
+  },
+  "ticket_events": [
+    {
+      "event_id": 1,
+      "ticket_id": "TKT-2026-00001",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_system",
+      "notes": "Ticket created from citizen report RPT-INIT-001 (Gate 1, 2, 3 passed).",
+      "created_at": "2026-10-15T08:52:12.288Z"
+    },
+    {
+      "event_id": 2,
+      "ticket_id": "TKT-2026-00002",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_system",
+      "notes": "Ticket created from citizen report RPT-INIT-002.",
+      "created_at": "2026-10-15T14:52:12.288Z"
+    },
+    {
+      "event_id": 3,
+      "ticket_id": "TKT-2026-00002",
+      "from_status": "TICKET_CREATED",
+      "to_status": "ASSIGNED",
+      "actor": "supervisor_ahmed",
+      "notes": "Assigned to Lighting Maintenance Crew #3.",
+      "created_at": "2026-10-15T16:52:12.288Z"
+    },
+    {
+      "event_id": 4,
+      "ticket_id": "TKT-2026-00003",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_system",
+      "notes": "Ticket created from citizen report RPT-INIT-003.",
+      "created_at": "2026-10-15T20:52:12.288Z"
+    },
+    {
+      "event_id": 5,
+      "ticket_id": "TKT-2026-00003",
+      "from_status": "TICKET_CREATED",
+      "to_status": "ASSIGNED",
+      "actor": "supervisor_leila",
+      "notes": "Assigned to Central Market Sanitation Team.",
+      "created_at": "2026-10-15T22:52:12.288Z"
+    },
+    {
+      "event_id": 6,
+      "ticket_id": "TKT-2026-00003",
+      "from_status": "ASSIGNED",
+      "to_status": "IN_PROGRESS",
+      "actor": "driver_karim",
+      "notes": "Compactor truck en route to location.",
+      "created_at": "2026-10-16T04:52:12.288Z"
+    },
+    {
+      "event_id": 7,
+      "ticket_id": "TKT-2026-00004",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_system",
+      "notes": "Ticket created from citizen report RPT-INIT-004.",
+      "created_at": "2026-10-16T02:52:12.288Z"
+    },
+    {
+      "event_id": 8,
+      "ticket_id": "TKT-2026-00004",
+      "from_status": "TICKET_CREATED",
+      "to_status": "ASSIGNED",
+      "actor": "dispatcher_marwa",
+      "notes": "Urgent water repair brigade dispatched.",
+      "created_at": "2026-10-16T03:52:12.288Z"
+    },
+    {
+      "event_id": 9,
+      "ticket_id": "TKT-2026-00004",
+      "from_status": "ASSIGNED",
+      "to_status": "IN_PROGRESS",
+      "actor": "engineer_samir",
+      "notes": "Isolation valve closed; repair clamp applied.",
+      "created_at": "2026-10-16T05:52:12.288Z"
+    },
+    {
+      "event_id": 10,
+      "ticket_id": "TKT-2026-00004",
+      "from_status": "IN_PROGRESS",
+      "to_status": "RESOLVED",
+      "actor": "engineer_samir",
+      "notes": "Pressure restored. Pavement made safe.",
+      "created_at": "2026-10-16T07:52:12.288Z"
+    },
+    {
+      "ticket_id": "TKT-2026-00005",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_persistence",
+      "notes": "Ticket registered from report RPT-TEST-POTHOLE-1792140900500.",
+      "created_at": "2026-10-16T08:55:00.552Z",
+      "event_id": 11
+    },
+    {
+      "ticket_id": "TKT-2026-00005",
+      "from_status": "TICKET_CREATED",
+      "to_status": "ASSIGNED",
+      "actor": "supervisor_faten",
+      "notes": "Assigned to North District Pavement Repair Team.",
+      "created_at": "2026-10-16T08:55:00.677Z",
+      "event_id": 12
+    },
+    {
+      "ticket_id": "TKT-2026-00005",
+      "from_status": "ASSIGNED",
+      "to_status": "IN_PROGRESS",
+      "actor": "crew_chief_ali",
+      "notes": "Pavement sawed, asphalt patching currently under application.",
+      "created_at": "2026-10-16T08:55:00.692Z",
+      "event_id": 13
+    },
+    {
+      "ticket_id": "TKT-2026-00005",
+      "from_status": "IN_PROGRESS",
+      "to_status": "RESOLVED",
+      "actor": "inspector_moncef",
+      "notes": "Resurfacing inspected and confirmed smooth. Road open to traffic.",
+      "created_at": "2026-10-16T08:55:00.695Z",
+      "event_id": 14
+    },
+    {
+      "ticket_id": "TKT-2026-00006",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_persistence",
+      "notes": "Ticket registered from report RPT-TEST-MISMATCH-1792140900581.",
+      "created_at": "2026-10-16T08:55:00.708Z",
+      "event_id": 15
+    },
+    {
+      "ticket_id": "TKT-2026-00007",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_persistence",
+      "notes": "Ticket registered from report RPT-TEST-POTHOLE-1792142737308.",
+      "created_at": "2026-10-16T09:25:37.360Z",
+      "event_id": 16
+    },
+    {
+      "ticket_id": "TKT-2026-00007",
+      "from_status": "TICKET_CREATED",
+      "to_status": "ASSIGNED",
+      "actor": "supervisor_faten",
+      "notes": "Assigned to North District Pavement Repair Team.",
+      "created_at": "2026-10-16T09:25:37.470Z",
+      "event_id": 17
+    },
+    {
+      "ticket_id": "TKT-2026-00007",
+      "from_status": "ASSIGNED",
+      "to_status": "IN_PROGRESS",
+      "actor": "crew_chief_ali",
+      "notes": "Pavement sawed, asphalt patching currently under application.",
+      "created_at": "2026-10-16T09:25:37.485Z",
+      "event_id": 18
+    },
+    {
+      "ticket_id": "TKT-2026-00007",
+      "from_status": "IN_PROGRESS",
+      "to_status": "RESOLVED",
+      "actor": "inspector_moncef",
+      "notes": "Resurfacing inspected and confirmed smooth. Road open to traffic.",
+      "created_at": "2026-10-16T09:25:37.501Z",
+      "event_id": 19
+    },
+    {
+      "ticket_id": "TKT-2026-00008",
+      "from_status": null,
+      "to_status": "TICKET_CREATED",
+      "actor": "n8n_persistence",
+      "notes": "Ticket registered from report RPT-TEST-MISMATCH-1792142737384.",
+      "created_at": "2026-10-16T09:25:37.532Z",
+      "event_id": 20
+    }
+  ],
+  "review_cases": {
+    "REV-RPT-INIT-005": {
+      "review_id": "REV-RPT-INIT-005",
+      "report_id": "RPT-INIT-005",
+      "review_reasons": [
+        "IMAGE_TEXT_MISMATCH_OR_UNCLEAR",
+        "VISION_UNCERTAIN"
+      ],
+      "status": "PENDING",
+      "raw_payload": {
+        "report_id": "RPT-INIT-005",
+        "description": "Citizen reported broken street sign but image shows normal cat",
+        "media_ref": "mock://unrelated"
+      },
+      "decision_notes": "Flagged by Gate 2: Description mentioned traffic sign, but image classification returned unrelated animal. Human inspection required.",
+      "created_at": "2026-10-16T06:52:12.288Z"
+    },
+    "REV-RPT-TEST-MISMATCH-1792140900581": {
+      "review_id": "REV-RPT-TEST-MISMATCH-1792140900581",
+      "report_id": "RPT-TEST-MISMATCH-1792140900581",
+      "review_reasons": [
+        "IMAGE_TEXT_MISMATCH_OR_UNCLEAR"
+      ],
+      "status": "APPROVED_TO_TICKET",
+      "raw_payload": {
+        "report_id": "RPT-TEST-MISMATCH-1792140900581",
+        "description": "There is a pothole on the road.",
+        "media_ref": "mock://streetlight"
+      },
+      "decision_notes": "Citizen photo inspected manually. Confirmed streetlight issue despite pothole keyword.",
+      "created_at": "2026-10-16T08:55:00.587Z",
+      "resolved_by": "supervisor_faten",
+      "resolved_at": "2026-10-16T08:55:00.708Z"
+    },
+    "REV-RPT-KNOW-FAIL": {
+      "review_id": "REV-RPT-KNOW-FAIL",
+      "report_id": "RPT-KNOW-FAIL",
+      "review_reasons": [
+        "KNOWLEDGE_ENDPOINT_FAILED_OR_INVALID"
+      ],
+      "status": "PENDING",
+      "raw_payload": {
+        "report_id": "RPT-KNOW-FAIL",
+        "description": "A deep pothole is dangerous for drivers on the road.",
+        "media_ref": "mock://pothole",
+        "location": {
+          "address": "Demo Avenue (fictional)",
+          "latitude": null,
+          "longitude": null
+        }
+      },
+      "decision_notes": "Flagged during workflow execution (simulator). Requires municipal triage.",
+      "created_at": "2026-10-16T08:55:00.635Z"
+    },
+    "REV-RPT-KNOW-EMPTY": {
+      "review_id": "REV-RPT-KNOW-EMPTY",
+      "report_id": "RPT-KNOW-EMPTY",
+      "review_reasons": [
+        "MISSING_SOURCE"
+      ],
+      "status": "PENDING",
+      "raw_payload": {
+        "report_id": "RPT-KNOW-EMPTY",
+        "description": "A deep pothole is dangerous for drivers on the road.",
+        "media_ref": "mock://pothole",
+        "location": {
+          "address": "Demo Avenue (fictional)",
+          "latitude": null,
+          "longitude": null
+        }
+      },
+      "decision_notes": "Flagged during workflow execution (simulator). Requires municipal triage.",
+      "created_at": "2026-10-16T08:55:00.650Z"
+    },
+    "REV-RPT-KNOW-WRONG": {
+      "review_id": "REV-RPT-KNOW-WRONG",
+      "report_id": "RPT-KNOW-WRONG",
+      "review_reasons": [
+        "KNOWLEDGE_REPORT_ID_MISMATCH"
+      ],
+      "status": "PENDING",
+      "raw_payload": {
+        "report_id": "RPT-KNOW-WRONG",
+        "description": "A deep pothole is dangerous for drivers on the road.",
+        "media_ref": "mock://pothole",
+        "location": {
+          "address": "Demo Avenue (fictional)",
+          "latitude": null,
+          "longitude": null
+        }
+      },
+      "decision_notes": "Flagged during workflow execution (simulator). Requires municipal triage.",
+      "created_at": "2026-10-16T08:55:00.665Z"
+    },
+    "REV-RPT-TEST-MISMATCH-1792142737384": {
+      "review_id": "REV-RPT-TEST-MISMATCH-1792142737384",
+      "report_id": "RPT-TEST-MISMATCH-1792142737384",
+      "review_reasons": [
+        "IMAGE_TEXT_MISMATCH_OR_UNCLEAR"
+      ],
+      "status": "APPROVED_TO_TICKET",
+      "raw_payload": {
+        "report_id": "RPT-TEST-MISMATCH-1792142737384",
+        "description": "There is a pothole on the road.",
+        "media_ref": "mock://streetlight"
+      },
+      "decision_notes": "Citizen photo inspected manually. Confirmed streetlight issue despite pothole keyword.",
+      "created_at": "2026-10-16T09:25:37.390Z",
+      "resolved_by": "supervisor_faten",
+      "resolved_at": "2026-10-16T09:25:37.532Z"
+    },
+    "REV-RPT-2026-5448": {
+      "review_id": "REV-RPT-2026-5448",
+      "report_id": "RPT-2026-5448",
+      "review_reasons": [
+        "UNKNOWN_CATEGORY",
+        "IMAGE_TEXT_MISMATCH_OR_UNCLEAR",
+        "VISION_UNCERTAIN",
+        "VISION_MISSING_EVIDENCE"
+      ],
+      "status": "PENDING",
+      "raw_payload": {
+        "report_id": "RPT-2026-5448",
+        "description": "A deep pothole is dangerous for drivers on the road surface.",
+        "media_ref": "mock://unrelated",
+        "location": {
+          "address": "Detected GPS Coordinates",
+          "latitude": 36.902463,
+          "longitude": 10.187438
+        }
+      },
+      "decision_notes": "Flagged during workflow execution (simulator). Requires municipal triage.",
+      "created_at": "2026-10-16T18:51:24.330Z"
+    }
+  }
+}

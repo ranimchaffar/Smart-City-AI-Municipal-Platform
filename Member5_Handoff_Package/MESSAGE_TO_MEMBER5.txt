@@ -1,0 +1,11 @@
+Hi, I've finished the n8n orchestration demo and I'm sending you the integration handoff for the web app/dashboard.
+
+The package includes the full architecture, 20-node Phase 5 n8n workflow JSON, exact HTTP endpoints, request/response examples, PASS/REVIEW/REJECT handling, department routing, API field definitions, demo test fixtures and a frontend TypeScript helper. Please start with Member5_Web_Interface_Handoff.pdf and README_START_HERE.md.
+
+Current working endpoint on my own machine:
+POST http://localhost:5678/webhook-test/municipal-ticket-phase5 (only when n8n is listening)
+Published path once activated: /webhook/municipal-ticket-phase5
+
+IMPORTANT: We are still using demo/fixture agents, not actual image analysis or verified municipal RAG. Tickets returned by n8n are NOT saved (persisted:false). Real file upload, Postgres ticket saving, review queue and dashboard APIs are your backend tasks, which we'll integrate with n8n once ready. Also, localhost won't work from your computer; we need to arrange a secure reachable backend connection.
+
+Please review the field contract and tell me what backend endpoint(s) you'll expose for ticket persistence and review cases. I'd like to keep the same field names, and make the save endpoint idempotent by report_id.

@@ -1,0 +1,29 @@
+{
+  "name": "municipal-member5-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend API, storage persistence, and n8n proxy for Member 5",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test": "node --loader ts-node/esm ../../tests/run-tests.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.5.4",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}

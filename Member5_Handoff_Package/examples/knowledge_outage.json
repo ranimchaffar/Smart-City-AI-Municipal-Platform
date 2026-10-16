@@ -1,0 +1,10 @@
+{
+  "report_id": "RPT-KNOW-FAIL",
+  "description": "A deep pothole is dangerous for drivers on the road.",
+  "media_ref": "mock://pothole",
+  "location": {
+    "address": "Demo Avenue (fictional)",
+    "latitude": null,
+    "longitude": null
+  }
+}

@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: municipal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: municipal_tickets
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d municipal_tickets"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: municipal-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/municipal_tickets
+      STAFF_AUTH_TOKEN: municipal-staff-secret-2026
+      N8N_MODE: mock
+      N8N_WEBHOOK_URL: http://host.docker.internal:5678/webhook/municipal-ticket-v1
+      N8N_TIMEOUT_MS: 15000
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: municipal-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

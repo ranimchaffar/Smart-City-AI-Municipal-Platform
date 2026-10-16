@@ -1,0 +1,6 @@
+{
+  "report_id": "RPT-001",
+  "description": "A deep pothole is dangerous for drivers on the road.",
+  "media_ref": "mock://pothole",
+  "location": {"address": "Demo Avenue (fictional)", "latitude": null, "longitude": null}
+}
