@@ -22,7 +22,7 @@ async function capture() {
 
   console.log('Navigating to http://127.0.0.1:5173...');
   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle0' });
-  await new Promise(r => setTimeout(r, 1200));
+  await new Promise(r => setTimeout(r, 1500));
 
   // 1. Citizen Portal Desktop Screenshot
   console.log('Capturing Citizen Portal Desktop...');
@@ -52,9 +52,9 @@ async function capture() {
     if (target) target.click();
   });
 
-  await new Promise(r => setTimeout(r, 2000));
+  await new Promise(r => setTimeout(r, 2500)); // Allow OpenStreetMap tiles and PostgreSQL data to settle
 
-  console.log('Capturing Operations Center Desktop...');
+  console.log('Capturing Operations Center Desktop with Real Leaflet Map...');
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, '03_operations_center_desktop.png'),
     fullPage: false
@@ -67,8 +67,66 @@ async function capture() {
     fullPage: true
   });
 
-  // Click on a table row to open Ticket Detail Drawer
-  console.log('Testing ticket drawer interaction...');
+  // 3. Test Leaflet Marker Click and Popup
+  console.log('Testing Leaflet incident pin click...');
+  const markerClicked = await page.evaluate(() => {
+    const pins = Array.from(document.querySelectorAll('.leaflet-pin-wrapper'));
+    if (pins.length > 0) {
+      pins[0].click();
+      return true;
+    }
+    return false;
+  });
+
+  if (markerClicked) {
+    await new Promise(r => setTimeout(r, 1000));
+    console.log('Capturing Leaflet Marker Popup...');
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, '08_leaflet_marker_popup.png'),
+      fullPage: false
+    });
+  }
+
+  // 4. Test "View full map" Modal
+  console.log('Opening Full Interactive Map Modal...');
+  await page.evaluate(() => {
+    const fullMapLink = Array.from(document.querySelectorAll('span, button')).find(
+      el => el.textContent?.includes('View full map')
+    );
+    if (fullMapLink) fullMapLink.click();
+  });
+
+  await new Promise(r => setTimeout(r, 2000));
+  console.log('Capturing Full Map Modal...');
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, '09_leaflet_full_map_modal.png'),
+    fullPage: false
+  });
+
+  // Test filter in Full Map Modal
+  console.log('Testing filter in Full Map Modal...');
+  await page.evaluate(() => {
+    const select = document.querySelector('.full-map-select');
+    if (select) {
+      select.value = 'IN_PROGRESS';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  await new Promise(r => setTimeout(r, 1000));
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, '10_leaflet_full_map_filtered.png'),
+    fullPage: false
+  });
+
+  // Close Full Map Modal
+  await page.evaluate(() => {
+    const closeBtn = document.querySelector('.full-map-close-btn');
+    if (closeBtn) closeBtn.click();
+  });
+  await new Promise(r => setTimeout(r, 800));
+
+  // 5. Test Table Row Click to Open Ticket Drawer
+  console.log('Testing ticket drawer interaction from table...');
   await page.evaluate(() => {
     const firstRow = document.querySelector('.fixly-table tbody tr');
     if (firstRow) firstRow.click();
@@ -86,7 +144,7 @@ async function capture() {
   });
   await new Promise(r => setTimeout(r, 500));
 
-  // 3. Responsive Mobile Screenshots
+  // 6. Responsive Mobile Screenshots
   console.log('Capturing Mobile View (iPhone 14 / 390x844)...');
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   
@@ -96,7 +154,7 @@ async function capture() {
     const opBtn = btns.find(b => b.textContent?.includes('Operations Center') || b.textContent?.includes('Dashboard Municipal'));
     if (opBtn) opBtn.click();
   });
-  await new Promise(r => setTimeout(r, 1200));
+  await new Promise(r => setTimeout(r, 1500));
   console.log('Capturing Operations Center Mobile...');
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, '06_operations_center_mobile.png'),

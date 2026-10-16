@@ -8,6 +8,7 @@ import { NeedsAttentionBanner } from './components/MunicipalityDashboard/NeedsAt
 import { KpiCards } from './components/MunicipalityDashboard/KpiCards';
 import { HighPriorityList } from './components/MunicipalityDashboard/HighPriorityList';
 import { LiveMapCard } from './components/MunicipalityDashboard/LiveMapCard';
+import { FullMapModal } from './components/MunicipalityDashboard/FullMapModal';
 import { RecentReportsTable } from './components/MunicipalityDashboard/RecentReportsTable';
 import { TicketDetailDrawer } from './components/MunicipalityDashboard/TicketDetailDrawer';
 import { ReviewQueue } from './components/MunicipalityDashboard/ReviewQueue';
@@ -36,6 +37,7 @@ export const App: React.FC = () => {
   const [tickets, setTickets] = useState<TicketDemo[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isFullMapModalOpen, setIsFullMapModalOpen] = useState(false);
   const [systemStatus, setSystemStatus] = useState<string>('PostgreSQL Active');
 
   // Citizen submission result state
@@ -215,7 +217,8 @@ export const App: React.FC = () => {
                   <LiveMapCard
                     tickets={tickets}
                     onSelectTicket={(t) => setSelectedTicketId(t.ticket_id)}
-                    onViewFullMap={() => setDashboardSubTab('map')}
+                    onViewFullMap={() => setIsFullMapModalOpen(true)}
+                    selectedTicketId={selectedTicketId}
                   />
                 </div>
 
@@ -244,10 +247,14 @@ export const App: React.FC = () => {
 
             {/* Dedicated Full Map Sub-tab */}
             {dashboardSubTab === 'map' && (
-              <LiveMapCard
-                tickets={tickets}
-                onSelectTicket={(t) => setSelectedTicketId(t.ticket_id)}
-              />
+              <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px' }}>
+                <LiveMapCard
+                  tickets={tickets}
+                  onSelectTicket={(t) => setSelectedTicketId(t.ticket_id)}
+                  onViewFullMap={() => setIsFullMapModalOpen(true)}
+                  selectedTicketId={selectedTicketId}
+                />
+              </div>
             )}
 
             {/* Dedicated Settings Sub-tab */}
@@ -257,6 +264,15 @@ export const App: React.FC = () => {
               </div>
             )}
           </main>
+
+          {/* Full Interactive Map Modal */}
+          <FullMapModal
+            isOpen={isFullMapModalOpen}
+            onClose={() => setIsFullMapModalOpen(false)}
+            tickets={tickets}
+            onSelectTicket={(t) => setSelectedTicketId(t.ticket_id)}
+            initialSelectedTicketId={selectedTicketId}
+          />
 
           {/* Modal / Drawer for Ticket Details (RAG SLA, Status Lifecycle) */}
           {selectedTicketId && (
