@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Clock,
   Compass,
+  Building2,
 } from 'lucide-react';
 import { TicketDemo } from '../../services/api';
 
@@ -32,15 +33,15 @@ interface FullMapModalProps {
 const getMarkerColor = (status: string): { color: string; label: string; group: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'UNASSIGNED' } => {
   const s = status.toUpperCase();
   if (s === 'RESOLVED' || s === 'CLOSED') {
-    return { color: '#10b981', label: 'Resolved', group: 'RESOLVED' };
+    return { color: '#10b981', label: 'Résolu', group: 'RESOLVED' };
   }
   if (s === 'IN_PROGRESS' || s === 'ASSIGNED') {
-    return { color: '#f97316', label: 'In Progress', group: 'IN_PROGRESS' };
+    return { color: '#f97316', label: 'En cours', group: 'IN_PROGRESS' };
   }
   if (s === 'REVIEW_REQUIRED' || s === 'VALIDATING' || s === 'ANALYZING' || s === 'UNASSIGNED') {
-    return { color: '#8b5cf6', label: 'Unassigned', group: 'UNASSIGNED' };
+    return { color: '#8b5cf6', label: 'Non assigné', group: 'UNASSIGNED' };
   }
-  return { color: '#ef4444', label: 'Open', group: 'OPEN' };
+  return { color: '#ef4444', label: 'Ouvert', group: 'OPEN' };
 };
 
 const createCustomPinIcon = (color: string, isSelected: boolean = false) => {
@@ -92,6 +93,7 @@ export const FullMapModal: React.FC<FullMapModalProps> = ({
   onSelectTicket,
   initialSelectedTicketId,
 }) => {
+  const [cityFilter, setCityFilter] = useState<'TUNIS' | 'CASABLANCA' | 'ALL'>('TUNIS');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
@@ -99,25 +101,18 @@ export const FullMapModal: React.FC<FullMapModalProps> = ({
   const [activeTicketId, setActiveTicketId] = useState<string | null>(initialSelectedTicketId || null);
   const [fitTrigger, setFitTrigger] = useState(0);
 
-  // Keyboard shortcut: Escape closes modal
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    if (initialSelectedTicketId) {
+      setActiveTicketId(initialSelectedTicketId);
+    }
+  }, [initialSelectedTicketId]);
 
-  // Extract geocoded records from PostgreSQL
-  const { geocodedTickets, excludedCount } = useMemo(() => {
-    let excluded = 0;
-    const valid: TicketDemo[] = [];
-
-    for (const t of tickets) {
+  // 1. Filter out tickets without valid coordinates
+  const validTickets = useMemo(() => {
+    return tickets.filter((t) => {
       const lat = t.location?.latitude;
       const lon = t.location?.longitude;
-
-      if (
+      return (
         lat !== null &&
         lat !== undefined &&
         lon !== null &&
@@ -128,41 +123,48 @@ export const FullMapModal: React.FC<FullMapModalProps> = ({
         lat <= 90 &&
         lon >= -180 &&
         lon <= 180
-      ) {
-        valid.push(t);
-      } else {
-        excluded++;
-      }
-    }
-
-    return { geocodedTickets: valid, excludedCount: excluded };
+      );
+    });
   }, [tickets]);
 
-  // Filter based on criteria
+  // 2. City Filter (Tunis vs Casablanca) per Requirement 6
+  const cityTickets = useMemo(() => {
+    if (cityFilter === 'ALL') return validTickets;
+    if (cityFilter === 'TUNIS') {
+      return validTickets.filter((t) => (t.location?.latitude || 0) >= 35);
+    }
+    return validTickets.filter((t) => (t.location?.latitude || 0) < 35);
+  }, [validTickets, cityFilter]);
+
+  // 3. Multi-factor search & filtering
   const filteredTickets = useMemo(() => {
-    return geocodedTickets.filter((t) => {
+    return cityTickets.filter((t) => {
       if (statusFilter !== 'ALL') {
         const { group } = getMarkerColor(t.status);
         if (group !== statusFilter) return false;
       }
+
       if (categoryFilter !== 'ALL' && t.category !== categoryFilter) {
         return false;
       }
+
       if (priorityFilter !== 'ALL' && t.priority !== priorityFilter) {
         return false;
       }
+
       if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase();
-        const idMatch = t.ticket_id.toLowerCase().includes(q);
-        const addrMatch = t.location?.address?.toLowerCase().includes(q);
-        const descMatch = t.procedure?.toLowerCase().includes(q);
-        if (!idMatch && !addrMatch && !descMatch) return false;
+        const term = searchTerm.toLowerCase();
+        const idMatch = t.ticket_id.toLowerCase().includes(term);
+        const addrMatch = t.location?.address?.toLowerCase().includes(term);
+        const catMatch = t.category.toLowerCase().includes(term);
+        if (!idMatch && !addrMatch && !catMatch) return false;
       }
+
       return true;
     });
-  }, [geocodedTickets, statusFilter, categoryFilter, priorityFilter, searchTerm]);
+  }, [cityTickets, statusFilter, categoryFilter, priorityFilter, searchTerm]);
 
-  // Compute bounding box
+  // 4. Compute bounds
   const bounds = useMemo(() => {
     if (filteredTickets.length === 0) return null;
     const latLngs = filteredTickets.map(
@@ -171,168 +173,266 @@ export const FullMapModal: React.FC<FullMapModalProps> = ({
     return L.latLngBounds(latLngs);
   }, [filteredTickets]);
 
-  // Target coordinates when an incident is clicked in the side list
-  const activeCenter = useMemo(() => {
+  const focusedCenter = useMemo(() => {
     if (!activeTicketId) return null;
-    const found = geocodedTickets.find((t) => t.ticket_id === activeTicketId);
+    const found = validTickets.find((t) => t.ticket_id === activeTicketId);
     if (found?.location?.latitude && found?.location?.longitude) {
       return [found.location.latitude, found.location.longitude] as [number, number];
     }
     return null;
-  }, [activeTicketId, geocodedTickets]);
+  }, [activeTicketId, validTickets]);
 
   if (!isOpen) return null;
 
+  const defaultCenter: [number, number] =
+    cityFilter === 'CASABLANCA' ? [33.5731, -7.5898] : [36.8008, 10.18];
+
   return (
-    <div className="full-map-modal-overlay">
-      <div className="full-map-modal-container">
-        {/* Modal Header */}
-        <div className="full-map-header">
-          <div className="full-map-header-left">
-            <div className="full-map-icon-box">
-              <Compass size={20} />
-            </div>
-            <div>
-              <h2 className="full-map-title">Smart City Geographic Operations Map</h2>
-              <div className="full-map-subtitle">
-                <span>{geocodedTickets.length} mapped incidents from PostgreSQL 14</span>
-                {excludedCount > 0 && <span> • {excludedCount} without GPS excluded</span>}
-              </div>
-            </div>
+    <div className="full-map-modal-backdrop" onClick={onClose}>
+      <div className="full-map-modal-window" onClick={(e) => e.stopPropagation()}>
+        {/* Top Header */}
+        <div className="full-map-top-bar">
+          <div className="full-map-title-group">
+            <h2 className="full-map-title">Carte Interactive des Incidents Municipaux</h2>
+            <span className="full-map-badge">
+              {filteredTickets.length} incidents affichés sur OpenStreetMap
+            </span>
           </div>
 
-          <div className="full-map-header-right">
-            <button
-              type="button"
-              className="full-map-fit-btn"
-              onClick={() => {
-                setActiveTicketId(null);
+          <div className="full-map-top-actions">
+            {/* City Selector */}
+            <select
+              value={cityFilter}
+              onChange={(e: any) => {
+                setCityFilter(e.target.value);
                 setFitTrigger((p) => p + 1);
               }}
-              title="Fit map to visible incidents"
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                fontSize: '13px',
+                fontWeight: 600,
+                background: '#ffffff',
+              }}
             >
-              <Crosshair size={14} />
-              <span>Fit bounds</span>
-            </button>
+              <option value="TUNIS">Grand Tunis ({validTickets.filter(t => (t.location?.latitude || 0) >= 35).length})</option>
+              <option value="CASABLANCA">Casablanca ({validTickets.filter(t => (t.location?.latitude || 0) < 35).length})</option>
+              <option value="ALL">Toutes les villes ({validTickets.length})</option>
+            </select>
+
             <button
               type="button"
-              className="full-map-close-btn"
-              onClick={onClose}
-              title="Close full map view"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setFitTrigger((prev) => prev + 1)}
+              title="Centrer la carte sur tous les incidents affichés"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <X size={18} />
+              <Crosshair size={14} />
+              <span>Centrer</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={onClose}
+              title="Fermer la vue cartographique"
+            >
+              <X size={16} />
             </button>
           </div>
         </div>
 
-        {/* Filters Toolbar */}
-        <div className="full-map-toolbar">
-          <div className="full-map-search-wrap">
-            <Search size={14} className="full-map-search-icon" />
+        {/* Filter Controls Bar */}
+        <div className="full-map-filter-bar">
+          <div className="full-map-search-box">
+            <Search size={14} className="search-icon" />
             <input
               type="text"
-              placeholder="Search by ticket ID, address, or keyword..."
+              placeholder="Rechercher par identifiant, rue ou catégorie..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="full-map-search-input"
             />
           </div>
 
-          <div className="full-map-filter-group">
+          <div className="full-map-filters-row">
+            {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="full-map-select"
             >
-              <option value="ALL">All Statuses</option>
-              <option value="OPEN">🔴 Open</option>
-              <option value="IN_PROGRESS">🟠 In Progress</option>
-              <option value="UNASSIGNED">🟣 Unassigned / Review</option>
-              <option value="RESOLVED">🟢 Resolved</option>
+              <option value="ALL">Tous les statuts</option>
+              <option value="OPEN">Ouvert</option>
+              <option value="IN_PROGRESS">En cours</option>
+              <option value="UNASSIGNED">Non assigné</option>
+              <option value="RESOLVED">Résolu</option>
             </select>
 
+            {/* Category Filter */}
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="full-map-select"
             >
-              <option value="ALL">All Categories</option>
-              <option value="ROAD_DAMAGE">Road Damage</option>
-              <option value="STREET_LIGHTING">Street Lighting</option>
-              <option value="WASTE">Sanitation & Waste</option>
-              <option value="WATER_LEAK">Water & Utilities</option>
+              <option value="ALL">Toutes catégories</option>
+              <option value="ROAD_DAMAGE">Voirie & Chaussée</option>
+              <option value="STREET_LIGHTING">Éclairage Public</option>
+              <option value="WASTE">Propreté & Déchets</option>
+              <option value="WATER_LEAK">Réseau d’Eau</option>
             </select>
 
+            {/* Priority Filter */}
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="full-map-select"
             >
-              <option value="ALL">All Priorities</option>
-              <option value="HIGH">High</option>
-              <option value="NORMAL">Medium / Normal</option>
-              <option value="LOW">Low</option>
+              <option value="ALL">Toutes priorités</option>
+              <option value="HIGH">Haute</option>
+              <option value="NORMAL">Normale</option>
+              <option value="LOW">Basse</option>
             </select>
           </div>
         </div>
 
-        {/* Main Body: Sidebar + Large Leaflet Map */}
-        <div className="full-map-body">
-          {/* Side List of Incidents */}
-          <div className="full-map-sidebar">
-            <div className="full-map-sidebar-header">
-              <span>Incidents ({filteredTickets.length})</span>
-            </div>
-            <div className="full-map-sidebar-list">
-              {filteredTickets.length === 0 ? (
-                <div className="full-map-no-results">
-                  No matching geolocated incidents found.
-                </div>
-              ) : (
-                filteredTickets.map((ticket) => {
-                  const { color, label } = getMarkerColor(ticket.status);
-                  const isSelected = ticket.ticket_id === activeTicketId;
+        {/* Leaflet Canvas Area */}
+        <div className="full-map-body-container">
+          <MapContainer
+            center={bounds?.getCenter() || defaultCenter}
+            zoom={cityFilter === 'ALL' ? 6 : 13}
+            scrollWheelZoom={true}
+            className="full-leaflet-map-element"
+            attributionControl={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+            />
 
-                  return (
-                    <div
-                      key={ticket.ticket_id}
-                      className={`full-map-incident-item ${isSelected ? 'active' : ''}`}
-                      onClick={() => setActiveTicketId(ticket.ticket_id)}
-                    >
-                      <div className="full-map-item-top">
-                        <span className="full-map-item-id">{ticket.ticket_id}</span>
+            <MapController
+              bounds={bounds}
+              center={focusedCenter}
+              triggerFit={fitTrigger}
+            />
+
+            {filteredTickets.map((ticket) => {
+              const lat = ticket.location!.latitude!;
+              const lon = ticket.location!.longitude!;
+              const { color } = getMarkerColor(ticket.status);
+              const isSelected = ticket.ticket_id === activeTicketId;
+
+              return (
+                <Marker
+                  key={ticket.ticket_id}
+                  position={[lat, lon]}
+                  icon={createCustomPinIcon(color, isSelected)}
+                  eventHandlers={{
+                    click: () => setActiveTicketId(ticket.ticket_id),
+                  }}
+                >
+                  <Popup className="fixly-leaflet-popup">
+                    <div className="map-popup-card">
+                      <div className="map-popup-header">
+                        <span className="map-popup-id">{ticket.ticket_id}</span>
                         <span
-                          className="full-map-item-status"
+                          className="map-popup-status"
                           style={{
                             backgroundColor: `${color}18`,
                             color: color,
                             borderColor: `${color}40`,
                           }}
                         >
-                          {label}
+                          {ticket.status}
                         </span>
                       </div>
-                      <div className="full-map-item-category">
+
+                      <div className="map-popup-category">
                         {ticket.category.replace('_', ' ')}
                       </div>
-                      <div className="full-map-item-address">
-                        <MapPin size={11} style={{ flexShrink: 0 }} />
-                        <span>{ticket.location?.address || 'No address specified'}</span>
+
+                      <div className="map-popup-address">
+                        <MapPin size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>{ticket.location?.address || `${lat.toFixed(4)}, ${lon.toFixed(4)}`}</span>
                       </div>
-                      <div className="full-map-item-actions">
-                        <span className="full-map-item-priority">
-                          Priority: {ticket.priority}
+
+                      <div className="map-popup-procedure">
+                        {ticket.procedure || 'Procédure standard de voirie municipale.'}
+                      </div>
+
+                      <div className="map-popup-footer">
+                        <span className="map-popup-priority">
+                          Priorité : <strong>{ticket.priority === 'HIGH' ? 'Haute' : ticket.priority === 'NORMAL' ? 'Normale' : 'Basse'}</strong>
                         </span>
                         <button
                           type="button"
-                          className="full-map-item-inspect-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          className="map-popup-inspect-btn"
+                          onClick={() => {
+                            onClose();
                             onSelectTicket(ticket);
                           }}
                         >
-                          <span>Open Ticket</span>
-                          <ExternalLink size={11} />
+                          <span>Fiche détaillée</span>
+                          <ExternalLink size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapContainer>
+
+          {/* Floating Sidebar List */}
+          <div className="full-map-sidebar-list">
+            <div className="full-map-sidebar-header">
+              <span>Incidents géolocalisés ({filteredTickets.length})</span>
+            </div>
+            <div className="full-map-sidebar-items">
+              {filteredTickets.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  Aucun incident ne correspond aux filtres.
+                </div>
+              ) : (
+                filteredTickets.map((t) => {
+                  const { color, label } = getMarkerColor(t.status);
+                  const isSelected = t.ticket_id === activeTicketId;
+
+                  return (
+                    <div
+                      key={t.ticket_id}
+                      className={`map-sidebar-item ${isSelected ? 'selected' : ''}`}
+                      onClick={() => setActiveTicketId(t.ticket_id)}
+                    >
+                      <div className="map-sidebar-item-top">
+                        <span className="map-sidebar-ticket-id">{t.ticket_id}</span>
+                        <span
+                          className="map-sidebar-status-tag"
+                          style={{
+                            backgroundColor: `${color}18`,
+                            color: color,
+                          }}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                      <div className="map-sidebar-item-desc">
+                        {t.location?.address || 'Tunis'}
+                      </div>
+                      <div className="map-sidebar-item-footer">
+                        <span>{t.category.replace('_', ' ')}</span>
+                        <button
+                          type="button"
+                          className="map-sidebar-btn-inspect"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onClose();
+                            onSelectTicket(t);
+                          }}
+                        >
+                          Examiner
                         </button>
                       </div>
                     </div>
@@ -340,91 +440,6 @@ export const FullMapModal: React.FC<FullMapModalProps> = ({
                 })
               )}
             </div>
-          </div>
-
-          {/* Leaflet Map Container */}
-          <div className="full-map-canvas">
-            <MapContainer
-              center={bounds?.getCenter() || [36.8008, 10.18]}
-              zoom={13}
-              scrollWheelZoom={true}
-              className="full-leaflet-element"
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
-              />
-
-              <MapController
-                bounds={bounds}
-                center={activeCenter}
-                triggerFit={fitTrigger}
-              />
-
-              {filteredTickets.map((ticket) => {
-                const lat = ticket.location!.latitude!;
-                const lon = ticket.location!.longitude!;
-                const { color } = getMarkerColor(ticket.status);
-                const isSelected = ticket.ticket_id === activeTicketId;
-
-                return (
-                  <Marker
-                    key={ticket.ticket_id}
-                    position={[lat, lon]}
-                    icon={createCustomPinIcon(color, isSelected)}
-                    eventHandlers={{
-                      click: () => setActiveTicketId(ticket.ticket_id),
-                    }}
-                  >
-                    <Popup className="fixly-leaflet-popup">
-                      <div className="map-popup-card">
-                        <div className="map-popup-header">
-                          <span className="map-popup-id">{ticket.ticket_id}</span>
-                          <span
-                            className="map-popup-status"
-                            style={{
-                              backgroundColor: `${color}18`,
-                              color: color,
-                              borderColor: `${color}40`,
-                            }}
-                          >
-                            {ticket.status}
-                          </span>
-                        </div>
-
-                        <div className="map-popup-category">
-                          {ticket.category.replace('_', ' ')}
-                        </div>
-
-                        <div className="map-popup-address">
-                          <MapPin size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
-                          <span>{ticket.location?.address || `${lat.toFixed(4)}, ${lon.toFixed(4)}`}</span>
-                        </div>
-
-                        <div className="map-popup-procedure">
-                          {ticket.procedure || 'Standard municipal triage procedure.'}
-                        </div>
-
-                        <div className="map-popup-footer">
-                          <span className="map-popup-priority">
-                            Priority: <strong>{ticket.priority}</strong>
-                          </span>
-                          <button
-                            type="button"
-                            className="map-popup-inspect-btn"
-                            onClick={() => onSelectTicket(ticket)}
-                          >
-                            <span>Inspect Ticket</span>
-                            <ExternalLink size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
-            </MapContainer>
           </div>
         </div>
       </div>

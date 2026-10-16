@@ -1,18 +1,28 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { municipalRouter } from './routes/municipal.js';
 import { ticketsRouter } from './routes/tickets.js';
 import { reviewsRouter } from './routes/reviews.js';
 import { uploadsRouter } from './routes/uploads.js';
 import { statsRouter } from './routes/stats.js';
 import { authRouter } from './routes/auth.js';
+import { adminRouter } from './routes/admin.js';
+import { optionalAuth } from './middleware/auth.js';
 
 export const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(optionalAuth);
 
 // NOTE: Raw uploads directory is NOT exposed statically to the public.
 // Privacy protection: only anonymized images (/api/uploads/safe/*) or authenticated staff (/api/uploads/raw/*) can view images.
@@ -25,6 +35,7 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/upload', uploadsRouter); // Alias for singular upload
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api', statsRouter);
 app.use('/api/dashboard', statsRouter); // Alias for /api/dashboard/stats
 

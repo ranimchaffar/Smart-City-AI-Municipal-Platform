@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -18,6 +18,7 @@ import {
   MapPin,
   ExternalLink,
   Layers,
+  Building2,
 } from 'lucide-react';
 import { TicketDemo } from '../../services/api';
 
@@ -29,25 +30,22 @@ interface LiveMapCardProps {
 }
 
 /**
- * Helper to determine marker color and status category
+ * Marker styling and French status groupings
  */
 const getMarkerColor = (status: string): { color: string; label: string; group: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'UNASSIGNED' } => {
   const s = status.toUpperCase();
   if (s === 'RESOLVED' || s === 'CLOSED') {
-    return { color: '#10b981', label: 'Resolved', group: 'RESOLVED' };
+    return { color: '#10b981', label: 'Résolu', group: 'RESOLVED' };
   }
   if (s === 'IN_PROGRESS' || s === 'ASSIGNED') {
-    return { color: '#f97316', label: 'In Progress', group: 'IN_PROGRESS' };
+    return { color: '#f97316', label: 'En cours', group: 'IN_PROGRESS' };
   }
   if (s === 'REVIEW_REQUIRED' || s === 'VALIDATING' || s === 'ANALYZING' || s === 'UNASSIGNED') {
-    return { color: '#8b5cf6', label: 'Unassigned', group: 'UNASSIGNED' };
+    return { color: '#8b5cf6', label: 'Non assigné', group: 'UNASSIGNED' };
   }
-  return { color: '#ef4444', label: 'Open', group: 'OPEN' };
+  return { color: '#ef4444', label: 'Ouvert', group: 'OPEN' };
 };
 
-/**
- * Creates custom crisp HTML pins with colored markers matching Reference Image 1
- */
 const createCustomPinIcon = (color: string, isSelected: boolean = false) => {
   return L.divIcon({
     className: 'custom-leaflet-marker-div',
@@ -65,9 +63,6 @@ const createCustomPinIcon = (color: string, isSelected: boolean = false) => {
   });
 };
 
-/**
- * Map helper to auto-fit bounds and handle resize
- */
 const MapController: React.FC<{
   bounds: L.LatLngBounds | null;
   center?: [number, number] | null;
@@ -76,7 +71,6 @@ const MapController: React.FC<{
   const map = useMap();
 
   useEffect(() => {
-    // Invalidate size on mount to avoid partial tile rendering
     const timer = setTimeout(() => {
       map.invalidateSize();
     }, 250);
@@ -100,10 +94,11 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
   onViewFullMap,
   selectedTicketId,
 }) => {
+  const [cityFilter, setCityFilter] = useState<'TUNIS' | 'CASABLANCA' | 'ALL'>('TUNIS');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'UNASSIGNED'>('ALL');
   const [fitTrigger, setFitTrigger] = useState(0);
 
-  // 1. Filter out records that lack valid geographic coordinates
+  // 1. Filter out records without valid coordinates
   const { geocodedTickets, excludedCount } = useMemo(() => {
     let excluded = 0;
     const valid: TicketDemo[] = [];
@@ -133,14 +128,24 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
     return { geocodedTickets: valid, excludedCount: excluded };
   }, [tickets]);
 
-  // 2. Compute accurate counts for legend matching Reference Image 1
+  // 2. Filter by geographic city (Tunis vs Casablanca) per Requirement 6
+  const cityFilteredTickets = useMemo(() => {
+    if (cityFilter === 'ALL') return geocodedTickets;
+    if (cityFilter === 'TUNIS') {
+      return geocodedTickets.filter((t) => (t.location?.latitude || 0) >= 35);
+    }
+    // Casablanca: latitude < 35 (approx 33.59)
+    return geocodedTickets.filter((t) => (t.location?.latitude || 0) < 35);
+  }, [geocodedTickets, cityFilter]);
+
+  // 3. Compute accurate counts for legend
   const counts = useMemo(() => {
     let open = 0;
     let inProgress = 0;
     let resolved = 0;
     let unassigned = 0;
 
-    for (const t of geocodedTickets) {
+    for (const t of cityFilteredTickets) {
       const { group } = getMarkerColor(t.status);
       if (group === 'OPEN') open++;
       else if (group === 'IN_PROGRESS') inProgress++;
@@ -148,19 +153,19 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
       else if (group === 'UNASSIGNED') unassigned++;
     }
 
-    return { open, inProgress, resolved, unassigned, total: geocodedTickets.length };
-  }, [geocodedTickets]);
+    return { open, inProgress, resolved, unassigned, total: cityFilteredTickets.length };
+  }, [cityFilteredTickets]);
 
-  // 3. Filter displayed markers according to active filter
+  // 4. Filter displayed markers according to status filter
   const displayedTickets = useMemo(() => {
-    if (statusFilter === 'ALL') return geocodedTickets;
-    return geocodedTickets.filter((t) => {
+    if (statusFilter === 'ALL') return cityFilteredTickets;
+    return cityFilteredTickets.filter((t) => {
       const { group } = getMarkerColor(t.status);
       return group === statusFilter;
     });
-  }, [geocodedTickets, statusFilter]);
+  }, [cityFilteredTickets, statusFilter]);
 
-  // 4. Compute geographic bounds for auto-fitting
+  // 5. Geographic bounds for auto-fitting
   const bounds = useMemo(() => {
     if (displayedTickets.length === 0) return null;
     const latLngs = displayedTickets.map(
@@ -169,65 +174,91 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
     return L.latLngBounds(latLngs);
   }, [displayedTickets]);
 
-  // 5. Selected ticket center coordinate if focused
+  // 6. Selected ticket focus
   const focusedCenter = useMemo(() => {
     if (!selectedTicketId) return null;
-    const found = geocodedTickets.find((t) => t.ticket_id === selectedTicketId);
+    const found = displayedTickets.find((t) => t.ticket_id === selectedTicketId);
     if (found?.location?.latitude && found?.location?.longitude) {
       return [found.location.latitude, found.location.longitude] as [number, number];
     }
     return null;
-  }, [selectedTicketId, geocodedTickets]);
+  }, [selectedTicketId, displayedTickets]);
 
-  // Default fallback center (Tunis center) if no bounds
-  const defaultCenter: [number, number] = [36.8008, 10.18];
+  const defaultCenter: [number, number] =
+    cityFilter === 'CASABLANCA' ? [33.5731, -7.5898] : [36.8008, 10.18];
 
   return (
     <div className="dashboard-panel-card live-map-card-wrapper">
-      {/* Header matching Reference Image 1 */}
+      {/* Top Header */}
       <div className="panel-header-row">
         <div className="panel-header-title">
-          <span>Live map</span>
-          <span className="live-map-geocoded-badge" title="Total PostgreSQL records with valid GPS coordinates">
-            {counts.total} geolocated
+          <span>Carte des incidents en direct</span>
+          <span className="live-map-geocoded-badge" title="Total d'incidents réels avec coordonnées GPS valides">
+            {counts.total} géolocalisés
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* City Geographic Selector (Requirement 6) */}
+          <select
+            value={cityFilter}
+            onChange={(e: any) => {
+              setCityFilter(e.target.value);
+              setFitTrigger((p) => p + 1);
+            }}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              fontSize: '12px',
+              background: '#ffffff',
+              fontWeight: 600,
+              color: 'var(--text-main)',
+            }}
+            title="Filtrer par territoire urbain"
+          >
+            <option value="TUNIS">Grand Tunis ({geocodedTickets.filter(t => (t.location?.latitude || 0) >= 35).length})</option>
+            <option value="CASABLANCA">Casablanca ({geocodedTickets.filter(t => (t.location?.latitude || 0) < 35).length})</option>
+            <option value="ALL">Toutes les villes ({geocodedTickets.length})</option>
+          </select>
+
           <button
             type="button"
             className="map-action-pill-btn"
             onClick={() => setFitTrigger((prev) => prev + 1)}
-            title="Recenter and fit all geolocated incidents"
+            title="Recadrer et centrer la carte sur les incidents"
           >
             <Crosshair size={13} />
-            <span>Fit</span>
+            <span>Centrer</span>
           </button>
+
           <span
             className="panel-header-link"
             onClick={onViewFullMap}
             role="button"
             tabIndex={0}
-            title="Open full interactive geographic map"
+            title="Ouvrir la carte interactive plein écran"
+            style={{ cursor: 'pointer' }}
           >
-            View full map
+            Agrandir la carte
           </span>
         </div>
       </div>
 
       {/* Real Geographic Map Canvas */}
       <div className="real-map-canvas-container">
-        {geocodedTickets.length === 0 ? (
+        {cityFilteredTickets.length === 0 ? (
           <div className="map-empty-state">
             <Compass size={32} className="map-empty-icon" />
-            <div className="map-empty-title">No Geolocated Incidents</div>
+            <div className="map-empty-title">Aucun incident géolocalisé</div>
             <div className="map-empty-text">
-              None of the current tickets in PostgreSQL contain valid geographic coordinates.
+              Aucun incident ne correspond aux critères géographiques sélectionnés.
             </div>
           </div>
         ) : (
           <MapContainer
             center={bounds?.getCenter() || defaultCenter}
-            zoom={12}
+            zoom={cityFilter === 'ALL' ? 6 : 12}
             scrollWheelZoom={true}
             className="leaflet-map-element"
             attributionControl={true}
@@ -282,12 +313,12 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
                       </div>
 
                       <div className="map-popup-procedure">
-                        {ticket.procedure || 'Standard municipal triage procedure.'}
+                        {ticket.procedure || 'Procédure standard de voirie municipale.'}
                       </div>
 
                       <div className="map-popup-footer">
                         <span className="map-popup-priority">
-                          Priority: <strong>{ticket.priority}</strong>
+                          Priorité : <strong>{ticket.priority === 'HIGH' ? 'Haute' : ticket.priority === 'NORMAL' ? 'Normale' : 'Basse'}</strong>
                         </span>
                         {onSelectTicket && (
                           <button
@@ -295,7 +326,7 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
                             className="map-popup-inspect-btn"
                             onClick={() => onSelectTicket(ticket)}
                           >
-                            <span>Inspect</span>
+                            <span>Examiner</span>
                             <ExternalLink size={12} />
                           </button>
                         )}
@@ -309,50 +340,50 @@ export const LiveMapCard: React.FC<LiveMapCardProps> = ({
         )}
       </div>
 
-      {/* Accurate Status Legend matching Reference Image 1 proportions */}
+      {/* Status Legend */}
       <div className="map-legend-row">
         <div
           className={`legend-item ${statusFilter === 'OPEN' ? 'active-filter' : ''}`}
           onClick={() => setStatusFilter((prev) => (prev === 'OPEN' ? 'ALL' : 'OPEN'))}
-          title="Click to filter Open incidents"
+          title="Filtrer les incidents ouverts"
         >
           <span className="legend-dot" style={{ backgroundColor: '#ef4444' }}></span>
-          <span>{counts.open} Open</span>
+          <span>{counts.open} Ouverts</span>
         </div>
 
         <div
           className={`legend-item ${statusFilter === 'IN_PROGRESS' ? 'active-filter' : ''}`}
           onClick={() => setStatusFilter((prev) => (prev === 'IN_PROGRESS' ? 'ALL' : 'IN_PROGRESS'))}
-          title="Click to filter In Progress incidents"
+          title="Filtrer les incidents en cours"
         >
           <span className="legend-dot" style={{ backgroundColor: '#f97316' }}></span>
-          <span>{counts.inProgress} In progress</span>
+          <span>{counts.inProgress} En cours</span>
         </div>
 
         <div
           className={`legend-item ${statusFilter === 'UNASSIGNED' ? 'active-filter' : ''}`}
           onClick={() => setStatusFilter((prev) => (prev === 'UNASSIGNED' ? 'ALL' : 'UNASSIGNED'))}
-          title="Click to filter Unassigned incidents"
+          title="Filtrer les incidents non assignés"
         >
           <span className="legend-dot" style={{ backgroundColor: '#8b5cf6' }}></span>
-          <span>{counts.unassigned} Unassigned</span>
+          <span>{counts.unassigned} Non assignés</span>
         </div>
 
         <div
           className={`legend-item ${statusFilter === 'RESOLVED' ? 'active-filter' : ''}`}
           onClick={() => setStatusFilter((prev) => (prev === 'RESOLVED' ? 'ALL' : 'RESOLVED'))}
-          title="Click to filter Resolved incidents"
+          title="Filtrer les incidents résolus"
         >
           <span className="legend-dot" style={{ backgroundColor: '#10b981' }}></span>
-          <span>{counts.resolved} Resolved</span>
+          <span>{counts.resolved} Résolus</span>
         </div>
       </div>
 
-      {/* Data Provenance & Exclusion Disclosure */}
+      {/* Data Disclosure */}
       <div className="map-exclusion-note">
         <span>
-          Real PostgreSQL 14 coordinates ({counts.total} mapped
-          {excludedCount > 0 ? ` • ${excludedCount} non-geolocated excluded` : ''})
+          Coordonnées réelles PostgreSQL 14 ({counts.total} cartographiés sur OpenStreetMap
+          {excludedCount > 0 ? ` • ${excludedCount} non géolocalisés exclus de la vue` : ''})
         </span>
       </div>
     </div>

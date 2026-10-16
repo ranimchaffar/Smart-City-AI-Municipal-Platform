@@ -15,7 +15,7 @@ import {
 const { Pool } = pg;
 
 export class PostgreSQLDatabase {
-  private pool: pg.Pool;
+  public pool: pg.Pool;
   private isConnected = false;
 
   constructor() {
@@ -69,14 +69,14 @@ export class PostgreSQLDatabase {
   }
 
   // --- Reports ---
-  public async saveReport(report: ReportRecord): Promise<ReportRecord> {
+  public async saveReport(report: Omit<ReportRecord, 'created_at'> & { created_at?: string }): Promise<ReportRecord> {
     const lat = report.location?.latitude ?? null;
     const lon = report.location?.longitude ?? null;
     const addr = report.location?.address ?? null;
 
     const query = `
-      INSERT INTO reports (report_id, description, media_ref, location_address, location_latitude, location_longitude, decision, status, demo_mode)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO reports (report_id, description, media_ref, location_address, location_latitude, location_longitude, decision, status, demo_mode, user_id, tracking_token)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       ON CONFLICT (report_id) DO UPDATE SET
         description = EXCLUDED.description,
         media_ref = EXCLUDED.media_ref,
@@ -84,7 +84,9 @@ export class PostgreSQLDatabase {
         location_latitude = EXCLUDED.location_latitude,
         location_longitude = EXCLUDED.location_longitude,
         decision = EXCLUDED.decision,
-        status = EXCLUDED.status
+        status = EXCLUDED.status,
+        user_id = COALESCE(EXCLUDED.user_id, reports.user_id),
+        tracking_token = COALESCE(EXCLUDED.tracking_token, reports.tracking_token)
       RETURNING *;
     `;
 
@@ -98,6 +100,8 @@ export class PostgreSQLDatabase {
       report.decision || 'PASS',
       report.status || 'RECEIVED',
       report.demo_mode ?? true,
+      report.user_id || null,
+      report.tracking_token || null,
     ];
 
     const res = await this.pool.query(query, values);
@@ -108,6 +112,11 @@ export class PostgreSQLDatabase {
     const res = await this.pool.query('SELECT * FROM reports WHERE report_id = $1', [report_id]);
     if (res.rows.length === 0) return null;
     return this.mapReportRow(res.rows[0]);
+  }
+
+  public async getUserReports(userId: string): Promise<ReportRecord[]> {
+    const res = await this.pool.query('SELECT * FROM reports WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+    return res.rows.map((r) => this.mapReportRow(r));
   }
 
   // --- Tickets ---
@@ -484,22 +493,35 @@ export class PostgreSQLDatabase {
 
   // --- Aggregate Stats ---
   public async getStats() {
-    const [totalRes, statusRes, reviewRes, catRes, deptRes, sevRes] = await Promise.all([
-      this.pool.query('SELECT COUNT(*) as count FROM tickets;'),
-      this.pool.query('SELECT status, COUNT(*) as count FROM tickets GROUP BY status;'),
+    const [countsRes, reviewRes, catRes, deptRes, sevRes] = await Promise.all([
+      this.pool.query(`
+        SELECT 
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status IN ('TICKET_CREATED', 'OPEN', 'RECEIVED')) as open,
+          COUNT(*) FILTER (WHERE status IN ('IN_PROGRESS', 'ASSIGNED')) as in_progress,
+          COUNT(*) FILTER (WHERE status = 'RESOLVED') as resolved,
+          COUNT(*) FILTER (WHERE priority = 'HIGH' OR severity = 'HIGH') as high_priority,
+          COUNT(*) FILTER (WHERE assigned_to IS NULL AND status IN ('TICKET_CREATED', 'OPEN', 'RECEIVED')) as unassigned,
+          COUNT(*) FILTER (WHERE deadline IS NOT NULL AND deadline < NOW() AND status NOT IN ('RESOLVED', 'REJECTED')) as overdue,
+          COUNT(*) FILTER (WHERE location_latitude IS NOT NULL AND location_longitude IS NOT NULL) as geocoded
+        FROM tickets;
+      `),
       this.pool.query("SELECT COUNT(*) as count FROM review_cases WHERE status = 'PENDING';"),
       this.pool.query('SELECT category, COUNT(*) as count FROM tickets GROUP BY category;'),
       this.pool.query('SELECT department, COUNT(*) as count FROM tickets GROUP BY department;'),
       this.pool.query('SELECT severity, COUNT(*) as count FROM tickets GROUP BY severity;'),
     ]);
 
-    const totalTickets = parseInt(totalRes.rows[0].count, 10);
+    const row = countsRes.rows[0];
+    const totalTickets = parseInt(row.total, 10);
+    const openTickets = parseInt(row.open, 10);
+    const inProgressTickets = parseInt(row.in_progress, 10);
+    const resolvedTickets = parseInt(row.resolved, 10);
+    const highPriorityTickets = parseInt(row.high_priority, 10);
+    const unassignedTickets = parseInt(row.unassigned, 10);
+    const overdueTickets = parseInt(row.overdue, 10);
+    const geocodedTickets = parseInt(row.geocoded, 10);
     const pendingReviews = parseInt(reviewRes.rows[0].count, 10);
-
-    const statusCounts: Record<string, number> = {};
-    for (const r of statusRes.rows) {
-      statusCounts[r.status] = parseInt(r.count, 10);
-    }
 
     const byCategory: Record<string, number> = {};
     for (const r of catRes.rows) {
@@ -516,19 +538,23 @@ export class PostgreSQLDatabase {
       bySeverity[r.severity] = parseInt(r.count, 10);
     }
 
-    const resolvedTickets = statusCounts['RESOLVED'] || 0;
-
     return {
       totalTickets,
-      openTickets: statusCounts['TICKET_CREATED'] || 0,
-      assignedTickets: statusCounts['ASSIGNED'] || 0,
-      inProgressTickets: statusCounts['IN_PROGRESS'] || 0,
+      openTickets,
+      assignedTickets: inProgressTickets,
+      inProgressTickets,
       resolvedTickets,
+      highPriorityTickets,
+      unassignedTickets,
+      overdueTickets,
+      geocodedTickets,
       pendingReviews,
       byCategory,
       byDepartment,
       bySeverity,
       resolvedRate: totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0,
+      avgResponseTime: null, // "Non disponible" when insufficient data, per Requirement 5
+      avgResolutionTime: null, // "Non disponible" when insufficient data, per Requirement 5
     };
   }
 
@@ -549,6 +575,8 @@ export class PostgreSQLDatabase {
       decision: row.decision,
       status: row.status,
       demo_mode: row.demo_mode,
+      user_id: row.user_id || null,
+      tracking_token: row.tracking_token || null,
       created_at: new Date(row.created_at).toISOString(),
     };
   }

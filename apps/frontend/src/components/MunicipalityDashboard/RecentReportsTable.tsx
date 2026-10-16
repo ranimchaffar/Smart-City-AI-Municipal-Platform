@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Hammer, Lightbulb, Trash2, Droplet, Eye } from 'lucide-react';
+import { Hammer, Lightbulb, Trash2, Droplet, Eye, User, Calendar, MapPin } from 'lucide-react';
 import { TicketDemo } from '../../services/api';
 
 interface RecentReportsTableProps {
@@ -31,141 +31,169 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({
   const getCategoryMeta = (cat: string) => {
     switch (cat) {
       case 'ROAD_DAMAGE':
-        return { label: 'Roads', icon: <Hammer size={13} style={{ color: '#dc2626' }} /> };
+        return { label: 'Voirie & Chaussée', icon: <Hammer size={13} style={{ color: '#dc2626' }} /> };
       case 'STREET_LIGHTING':
-        return { label: 'Infrastructure', icon: <Lightbulb size={13} style={{ color: '#d97706' }} /> };
+        return { label: 'Éclairage Public', icon: <Lightbulb size={13} style={{ color: '#d97706' }} /> };
       case 'WASTE':
-        return { label: 'Sanitation', icon: <Trash2 size={13} style={{ color: '#15803d' }} /> };
+        return { label: 'Propreté Urbaine', icon: <Trash2 size={13} style={{ color: '#15803d' }} /> };
       case 'WATER_LEAK':
-        return { label: 'Water Services', icon: <Droplet size={13} style={{ color: '#0284c7' }} /> };
+        return { label: 'Réseau d’Eau', icon: <Droplet size={13} style={{ color: '#0284c7' }} /> };
       default:
-        return { label: 'General', icon: <Hammer size={13} /> };
+        return { label: 'Général', icon: <Hammer size={13} /> };
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'IN_PROGRESS':
-        return <span className="pill-badge-orange">IN PROGRESS</span>;
+        return <span className="pill-badge-orange">EN COURS</span>;
       case 'RESOLVED':
-        return <span className="pill-badge-green">RESOLVED</span>;
+        return <span className="pill-badge-green">RÉSOLU</span>;
       case 'REJECTED':
-        return <span className="badge badge-reject">REJECTED</span>;
+        return <span className="badge badge-reject">REJETÉ</span>;
       default:
-        return <span className="pill-badge-red">OPEN</span>;
+        return <span className="pill-badge-red">OUVERT</span>;
     }
   };
 
   const getPriorityBadge = (priority: string, severity: string) => {
-    if (severity === 'HIGH' || priority === 'P1') {
-      return <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '12px' }}>• High</span>;
+    if (severity === 'HIGH' || priority === 'HIGH' || priority === 'P1') {
+      return <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '12px' }}>• Haute</span>;
     }
-    if (severity === 'MEDIUM' || priority === 'P2') {
-      return <span style={{ color: '#d97706', fontWeight: 600, fontSize: '12px' }}>• Medium</span>;
+    if (severity === 'MEDIUM' || priority === 'NORMAL' || priority === 'P2') {
+      return <span style={{ color: '#d97706', fontWeight: 600, fontSize: '12px' }}>• Moyenne</span>;
     }
-    return <span style={{ color: '#64748b', fontWeight: 600, fontSize: '12px' }}>• Low</span>;
+    return <span style={{ color: '#64748b', fontWeight: 600, fontSize: '12px' }}>• Basse</span>;
   };
 
   return (
     <div className="recent-reports-panel">
       <div className="panel-header-row">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <h3 className="panel-header-title">Recent reports</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <h3 className="panel-header-title">Signalements récents</h3>
 
-          {/* Filter Pills matching Reference Image 1 */}
+          {/* Filter Pills */}
           <div className="recent-filter-pills">
             <button
               type="button"
               className={`filter-pill ${activeFilter === 'ALL' ? 'active' : ''}`}
               onClick={() => setActiveFilter('ALL')}
             >
-              All {allCount}
+              Tous {allCount}
             </button>
             <button
               type="button"
               className={`filter-pill ${activeFilter === 'OPEN' ? 'active' : ''}`}
               onClick={() => setActiveFilter('OPEN')}
             >
-              Open {openCount}
+              Ouverts {openCount}
             </button>
             <button
               type="button"
               className={`filter-pill ${activeFilter === 'IN_PROGRESS' ? 'active' : ''}`}
               onClick={() => setActiveFilter('IN_PROGRESS')}
             >
-              In progress {inProgCount}
+              En cours {inProgCount}
             </button>
             <button
               type="button"
               className={`filter-pill ${activeFilter === 'RESOLVED' ? 'active' : ''}`}
               onClick={() => setActiveFilter('RESOLVED')}
             >
-              Resolved {resolvedCount}
+              Résolus {resolvedCount}
             </button>
           </div>
         </div>
-
-        <span className="panel-header-link" onClick={onRefresh}>
-          View all
-        </span>
       </div>
 
-      <div className="table-responsive">
-        <table className="fixly-table">
+      <div className="table-responsive-wrapper">
+        <table className="recent-reports-table">
           <thead>
             <tr>
-              <th>Issue</th>
-              <th>Location</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Reported</th>
-              <th>Age</th>
+              <th>N° TICKET</th>
+              <th>DATE</th>
+              <th>LOCALISATION</th>
+              <th>CATÉGORIE</th>
+              <th>PRIORITÉ</th>
+              <th>STATUT</th>
+              <th>AFFECTÉ À</th>
+              <th style={{ textAlign: 'right' }}>ACTION</th>
             </tr>
           </thead>
           <tbody>
             {filteredTickets.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                  No reports in this view.
+                <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  Aucun ticket ne correspond au filtre sélectionné.
                 </td>
               </tr>
             ) : (
-              filteredTickets.map((t, idx) => {
-                const cat = getCategoryMeta(t.category);
-                const issueTitle = t.procedure
-                  ? t.procedure.split('.')[0]
-                  : `${t.category.replace('_', ' ')} incident on roadway`;
-                const locationAddress = t.location?.address || 'Main St & 1st Ave';
-                const ageText = idx === 0 ? '7h' : idx === 1 ? '9h' : idx === 2 ? '1d' : '2d';
-                const reportedDate = t.created_at
-                  ? new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-                  : 'Apr 25, 9:24 AM';
+              filteredTickets.map((t) => {
+                const catMeta = getCategoryMeta(t.category);
+                const dateStr = t.created_at
+                  ? new Date(t.created_at).toLocaleDateString('fr-FR')
+                  : 'Aujourd’hui';
 
                 return (
                   <tr
                     key={t.ticket_id}
-                    style={{ cursor: 'pointer' }}
                     onClick={() => onSelectTicket(t)}
+                    style={{ cursor: 'pointer' }}
                   >
-                    <td style={{ fontWeight: 600, color: 'var(--text-main)', maxWidth: '240px' }}>
-                      <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {t.ticket_id}: {issueTitle}
-                      </div>
+                    <td>
+                      <span className="ticket-id-clean">{t.ticket_id}</span>
                     </td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: '12.5px' }}>
-                      {locationAddress.split(',')[0]}
+                    <td style={{ color: 'var(--text-muted)' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Calendar size={12} />
+                        {dateStr}
+                      </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px' }}>
-                        {cat.icon}
-                        <span>{cat.label}</span>
+                      <div className="loc-main">
+                        <MapPin size={12} style={{ display: 'inline', marginRight: '4px', color: 'var(--text-muted)' }} />
+                        {t.location?.address ? t.location.address.split(',')[0] : 'Tunis'}
+                      </div>
+                      <div className="loc-sub">
+                        {t.location?.latitude && t.location?.longitude
+                          ? `${t.location.latitude.toFixed(4)}, ${t.location.longitude.toFixed(4)}`
+                          : 'Grand Tunis'}
                       </div>
                     </td>
-                    <td>{getStatusBadge(t.status)}</td>
+                    <td>
+                      <span className="cat-pill">
+                        {catMeta.icon}
+                        <span>{catMeta.label}</span>
+                      </span>
+                    </td>
                     <td>{getPriorityBadge(t.priority, t.severity)}</td>
-                    <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{reportedDate}</td>
-                    <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{ageText}</td>
+                    <td>{getStatusBadge(t.status)}</td>
+                    <td>
+                      <span style={{ fontSize: '12px', color: t.assigned_agent_name ? '#1e3a8a' : 'var(--text-muted)' }}>
+                        {t.assigned_agent_name ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <User size={12} />
+                            {t.assigned_agent_name}
+                          </span>
+                        ) : (
+                          'Non affecté'
+                        )}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectTicket(t);
+                        }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}
+                      >
+                        <Eye size={12} />
+                        Consulter
+                      </button>
+                    </td>
                   </tr>
                 );
               })

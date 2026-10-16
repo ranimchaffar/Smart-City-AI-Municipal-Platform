@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Clock, CheckCircle2, AlertCircle, Building, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
-import { fetchReportDetails, fetchTicketById, TicketDemo, TicketEvent } from '../../services/api';
+import { fetchReportWithTracking, fetchTicketById, TicketDemo, TicketEvent } from '../../services/api';
 
 const STATUS_MAP: Record<string, { label: string; badge: string; desc: string }> = {
   RECEIVED: { label: 'Signalement Reçu', badge: 'badge-info', desc: 'Dossier enregistré dans le registre municipal.' },
@@ -23,6 +23,7 @@ const DEPARTMENT_LABELS: Record<string, string> = {
 
 export const TicketTracker: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ticketData, setTicketData] = useState<{ ticket: TicketDemo; events: TicketEvent[] } | null>(null);
@@ -42,7 +43,7 @@ export const TicketTracker: React.FC = () => {
         const res = await fetchTicketById(q);
         setTicketData(res);
       } else {
-        const repRes = await fetchReportDetails(q);
+        const repRes = await fetchReportWithTracking(q, tokenInput.trim() || undefined);
         if (repRes.ticket) {
           setTicketData({ ticket: repRes.ticket, events: repRes.events || [] });
         } else if (repRes.reviewCase) {
@@ -52,7 +53,7 @@ export const TicketTracker: React.FC = () => {
         }
       }
     } catch (err: any) {
-      setError(`Le dossier "${q}" n'a pas été trouvé dans les registres municipaux.`);
+      setError(err.message || `Le dossier "${q}" n'a pas été trouvé ou requiert un jeton de suivi valide.`);
     } finally {
       setIsLoading(false);
     }
@@ -72,18 +73,26 @@ export const TicketTracker: React.FC = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
         <input
           type="text"
           className="form-input"
-          placeholder="Entrez votre N° de Ticket (ex: TKT-2026-00010) ou Référence (ex: RPT-2026-...)"
+          placeholder="N° de Ticket (TKT-...) ou Référence (RPT-...)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
+          style={{ flex: '1 1 240px', fontFamily: 'var(--font-mono)' }}
           required
         />
-        <button type="submit" className="btn btn-primary" disabled={isLoading} style={{ flexShrink: 0 }}>
-          {isLoading ? 'Recherche en cours...' : 'Rechercher le Dossier'}
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Jeton secret de suivi (requis pour signalement anonyme)"
+          value={tokenInput}
+          onChange={(e) => setTokenInput(e.target.value)}
+          style={{ flex: '1 1 260px', fontFamily: 'var(--font-mono)' }}
+        />
+        <button type="submit" className="btn btn-primary" disabled={isLoading} style={{ flexShrink: 0, padding: '10px 20px' }}>
+          {isLoading ? 'Recherche...' : 'Rechercher le Dossier'}
         </button>
       </form>
 

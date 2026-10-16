@@ -110,6 +110,8 @@ export interface ReportRecord {
   decision: Decision;
   status: string;
   demo_mode: boolean;
+  user_id?: string | null;
+  tracking_token?: string | null;
   created_at: string;
 }
 

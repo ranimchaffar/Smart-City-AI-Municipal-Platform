@@ -129,6 +129,31 @@ export const SubmissionResult: React.FC<SubmissionResultProps> = ({
             </span>
           </div>
 
+          {/* Jeton Secret de Suivi Anonyme (Requirement 1 & 2) */}
+          {response.tracking_token && (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e40af', fontWeight: 700, fontSize: '13px', marginBottom: '4px' }}>
+                <Shield size={16} /> Jeton Secret de Suivi Citoyen (Accès Anonyme Sécurisé)
+              </div>
+              <div style={{ fontSize: '12px', color: '#3b82f6', marginBottom: '8px' }}>
+                Conservez précieusement ce jeton pour suivre l'évolution de votre signalement anonyme à tout moment :
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <code style={{ background: '#ffffff', padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace', color: '#1e3a8a' }}>
+                  {response.tracking_token}
+                </code>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => navigator.clipboard.writeText(response.tracking_token!)}
+                  style={{ fontSize: '11px' }}
+                >
+                  Copier le jeton
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Attributs Clés du Ticket */}
           <div className="grid-4" style={{ marginBottom: '20px' }}>
             <div className="stat-card">

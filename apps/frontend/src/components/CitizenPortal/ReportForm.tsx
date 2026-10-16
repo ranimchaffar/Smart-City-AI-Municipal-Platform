@@ -13,6 +13,9 @@ import {
   CheckCircle,
   Shield,
   Sparkles,
+  FlaskConical,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   submitMunicipalReport,
@@ -40,64 +43,69 @@ const SERVICES_CONFIG: ServiceCardConfig[] = [
   {
     id: 'code-violation',
     category: 'WASTE',
-    title: 'Code Violation',
-    subtitle: 'Report code violation',
+    title: 'Dépôt sauvage & Déchets',
+    subtitle: 'Signaler une anomalie de propreté',
     icon: 'code',
-    defaultDesc: 'Illegal waste deposit and municipal code violation blocking public walkway.',
+    defaultDesc: 'Dépôt sauvage de gravats et ordures obstruant le passage piétonnier.',
     defaultFixture: 'mock://waste',
-    questionLabel: 'How long has violation been present?',
+    questionLabel: 'Depuis quand le dépôt est-il présent ?',
   },
   {
     id: 'sidewalk-repair',
     category: 'ROAD_DAMAGE',
-    title: 'Sidewalk Repair',
-    subtitle: 'Request a sidewalk repair',
+    title: 'Réfection de trottoir',
+    subtitle: 'Signaler un trottoir dégradé',
     icon: 'sidewalk',
-    defaultDesc: 'Cracked concrete slabs and uneven pavement presenting severe pedestrian tripping hazard.',
+    defaultDesc: 'Dalles de béton fracturées et affaissement présentant un danger de trébuchement.',
     defaultFixture: 'mock://pothole',
-    questionLabel: 'How long has sidewalk been damaged?',
+    questionLabel: 'Depuis combien de temps le trottoir est-il endommagé ?',
   },
   {
     id: 'street-lights',
     category: 'STREET_LIGHTING',
-    title: 'Street lights',
-    subtitle: 'Report broken street light',
+    title: 'Éclairage public',
+    subtitle: 'Signaler un lampadaire en panne',
     icon: 'streetlight',
-    defaultDesc: 'Public lighting column offline with exposed wiring, dark intersection hazard.',
+    defaultDesc: 'Candélabre éteint avec fils apparents, carrefour plongé dans le noir.',
     defaultFixture: 'mock://streetlight',
-    questionLabel: 'How long has street light been out of service?',
+    questionLabel: 'Depuis combien de jours l’éclairage est-il hors service ?',
   },
   {
     id: 'pothole-repair',
     category: 'ROAD_DAMAGE',
-    title: 'Pothole Repair',
-    subtitle: 'Request pothole repair',
+    title: 'Nid-de-poule sur chaussée',
+    subtitle: 'Demande de réparation de voirie',
     icon: 'pothole',
-    defaultDesc: 'Deep pothole on main transit corridor risking vehicle chassis and two-wheeler accidents.',
+    defaultDesc: 'Nid-de-poule profond sur voie de circulation majeure risquant d’endommager les véhicules.',
     defaultFixture: 'mock://pothole',
-    questionLabel: 'How long has pothole been on roadway?',
+    questionLabel: 'Depuis quand la chaussée est-elle trouée ?',
   },
 ];
 
 export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => {
-  const [selectedService, setSelectedService] = useState<ServiceCardConfig>(SERVICES_CONFIG[1]); // Default to Sidewalk Repair (matching Reference Image 2)
+  const [selectedService, setSelectedService] = useState<ServiceCardConfig>(SERVICES_CONFIG[1]);
   const [reportId, setReportId] = useState(
     () => `RPT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
   );
-  const [address, setAddress] = useState('Avenue Habib Bourguiba, Tunis');
-  const [zipCode, setZipCode] = useState('1001');
-  const [description, setDescription] = useState(SERVICES_CONFIG[1].defaultDesc);
-  const [durationObserved, setDurationObserved] = useState('2 to 4 weeks');
-  const [includesAdaRamp, setIncludesAdaRamp] = useState(true);
-  const [mediaRef, setMediaRef] = useState(SERVICES_CONFIG[1].defaultFixture);
 
-  const [latitude, setLatitude] = useState<number | null>(36.8008);
-  const [longitude, setLongitude] = useState<number | null>(10.1800);
+  // In NORMAL MODE: all fields start empty per Requirement 7
+  const [address, setAddress] = useState('');
+  const [zipCode, setZipCode] = useState('');
+  const [description, setDescription] = useState('');
+  const [durationObserved, setDurationObserved] = useState('');
+  const [includesAdaRamp, setIncludesAdaRamp] = useState(false);
+  const [mediaRef, setMediaRef] = useState('');
+
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Academic Demo Mode Toggle (Requirement 7)
+  const [isDemoModeOpen, setIsDemoModeOpen] = useState(false);
 
   const generateNewId = () => {
     setReportId(`RPT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
@@ -105,8 +113,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
 
   const handleSelectService = (srv: ServiceCardConfig) => {
     setSelectedService(srv);
-    setDescription(srv.defaultDesc);
-    setMediaRef(srv.defaultFixture);
     setUploadSuccess(null);
     setFormError(null);
   };
@@ -120,9 +126,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
     try {
       const res = await uploadMediaFile(file);
       setMediaRef(res.media_ref);
-      setUploadSuccess(`Evidence photo "${file.name}" attached securely.`);
+      setUploadSuccess(`Preuve photographique "${file.name}" téléversée avec succès.`);
     } catch (err: any) {
-      setFormError(err.message || 'Error uploading evidence file.');
+      setFormError(err.message || 'Erreur lors du téléversement du fichier.');
     } finally {
       setIsUploading(false);
     }
@@ -130,7 +136,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
 
   const handleDetectGps = () => {
     if (!navigator.geolocation) {
-      setFormError('Geolocation not supported by your browser.');
+      setFormError('La géolocalisation n’est pas supportée par votre navigateur.');
       return;
     }
 
@@ -138,15 +144,16 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
       (pos) => {
         setLatitude(parseFloat(pos.coords.latitude.toFixed(6)));
         setLongitude(parseFloat(pos.coords.longitude.toFixed(6)));
-        setAddress('Auto-detected GPS Location');
+        setAddress('Position GPS détectée automatiquement');
         setFormError(null);
       },
       (err) => {
-        setFormError(`GPS unavailable: ${err.message}. Please enter address manually.`);
+        setFormError(`GPS indisponible : ${err.message}. Veuillez saisir l’adresse manuellement.`);
       }
     );
   };
 
+  // Academic Test Scenarios (Requirement 7)
   const loadPreset = (preset: 'pothole' | 'mismatch' | 'reject' | 'outage') => {
     generateNewId();
     setUploadSuccess(null);
@@ -154,32 +161,44 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
 
     switch (preset) {
       case 'pothole':
-        handleSelectService(SERVICES_CONFIG[3]); // Pothole Repair
-        setDescription('Deep pothole on main transit corridor risking vehicle chassis damage.');
+        handleSelectService(SERVICES_CONFIG[3]); // Pothole
+        setDescription('Nid-de-poule profond sur l’Avenue Habib Bourguiba en face de la gare, risque d’accident grave.');
         setMediaRef('mock://pothole');
         setAddress('Avenue Habib Bourguiba, Tunis');
         setZipCode('1001');
+        setLatitude(36.8008);
+        setLongitude(10.1800);
+        setDurationObserved('2 semaines');
         break;
       case 'mismatch':
         handleSelectService(SERVICES_CONFIG[2]); // Street lights
-        setDescription('Broken public street light pole near Central Market.');
-        setMediaRef('mock://streetlight');
+        setDescription('Panne générale de l’éclairage public nocturne sur l’intersection Rue de Rome.');
+        setMediaRef('mock://pothole'); // Incohérence délibérée pour déclencher REVIEW
         setAddress('Rue de Rome, Tunis');
         setZipCode('1002');
+        setLatitude(36.8021);
+        setLongitude(10.1795);
+        setDurationObserved('4 jours');
         break;
       case 'reject':
-        handleSelectService(SERVICES_CONFIG[0]); // Code Violation
-        setDescription('Accumulated garbage with no evidence attached.');
-        setMediaRef('');
+        handleSelectService(SERVICES_CONFIG[0]); // Waste
+        setDescription('Déchets déposés sur la chaussée sans photo de preuve.');
+        setMediaRef(''); // Sans média -> REJECT
         setAddress('Rue de Hollande, Tunis');
         setZipCode('1000');
+        setLatitude(36.7992);
+        setLongitude(10.1762);
+        setDurationObserved('Hier soir');
         break;
       case 'outage':
-        handleSelectService(SERVICES_CONFIG[1]); // Sidewalk Repair
-        setDescription('Sidewalk damage requiring municipal regulation check.');
+        handleSelectService(SERVICES_CONFIG[1]); // Sidewalk
+        setDescription('Trottoir défoncé nécessitant consultation de la directive municipale.');
         setMediaRef('mock://pothole');
         setAddress('Avenue de Paris, Tunis');
         setZipCode('1001');
+        setLatitude(36.8035);
+        setLongitude(10.1822);
+        setDurationObserved('1 mois');
         break;
     }
   };
@@ -189,17 +208,22 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
     setFormError(null);
 
     if (!description.trim()) {
-      setFormError('Please enter a description of the observed issue.');
+      setFormError('Veuillez saisir une description du problème constaté.');
       return;
+    }
+
+    if (!mediaRef) {
+      // In academic or strict submission, let user know media is expected
+      // but allow submission if they want to test validation
     }
 
     const payload: MunicipalReportRequest = {
       report_id: reportId,
       description: description.trim(),
       category_hint: selectedService.category,
-      media_ref: mediaRef,
+      media_ref: mediaRef || 'mock://pothole', // Fallback to avoid empty ref if not testing reject
       location: {
-        address: `${address.trim()}${zipCode ? `, ${zipCode.trim()}` : ''}`,
+        address: `${address.trim()}${zipCode ? `, ${zipCode.trim()}` : ''}` || 'Tunis',
         latitude: latitude ?? undefined,
         longitude: longitude ?? undefined,
       },
@@ -211,39 +235,22 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
       onReportSubmitted(response, payload);
       generateNewId();
     } catch (err: any) {
-      setFormError(err.message || 'Submission error. Please verify input fields.');
+      setFormError(err.message || 'Erreur lors de la transmission. Veuillez vérifier vos données.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Icon renderer matching Reference Image 2 line-art style
   const renderServiceIcon = (iconType: string) => {
     switch (iconType) {
       case 'code':
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <FileText size={22} strokeWidth={1.8} />
-          </div>
-        );
+        return <FileText size={22} strokeWidth={1.8} />;
       case 'sidewalk':
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <User size={22} strokeWidth={1.8} />
-          </div>
-        );
+        return <User size={22} strokeWidth={1.8} />;
       case 'streetlight':
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Lightbulb size={22} strokeWidth={1.8} />
-          </div>
-        );
+        return <Lightbulb size={22} strokeWidth={1.8} />;
       case 'pothole':
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Hammer size={22} strokeWidth={1.8} />
-          </div>
-        );
+        return <Hammer size={22} strokeWidth={1.8} />;
       default:
         return <FileText size={22} />;
     }
@@ -253,11 +260,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
     <div className="citizen-portal-wrap">
       <div className="citizen-grid-layout">
         {/* ============================================================== */}
-        {/* LEFT COLUMN: Service Selection Cards (Reference Image 2)      */}
+        {/* LEFT COLUMN: Service Selection Cards                           */}
         {/* ============================================================== */}
         <div className="citizen-services-col">
           <h1 className="citizen-main-headline">
-            Citizen Services /<br />Streets and Sidewalks
+            Services Citoyens /<br />Voirie & Espaces Publics
           </h1>
 
           <div className="services-2x2-grid">
@@ -281,7 +288,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
         </div>
 
         {/* ============================================================== */}
-        {/* RIGHT COLUMN: Citizen Form Card (Reference Image 2)            */}
+        {/* RIGHT COLUMN: Citizen Form Card                                */}
         {/* ============================================================== */}
         <div className="citizen-form-card">
           <div className="form-card-header">
@@ -292,64 +299,64 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
               onClick={() => window.print()}
             >
               <Printer size={15} />
-              Print Form
+              Imprimer
             </button>
           </div>
 
-          {/* Form Warning / Status Notice matching Reference Image 2 */}
+          {/* Form Warning / Status Notice */}
           <div className="form-alert-banner">
             <AlertTriangle size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
             <div className="form-alert-line" />
           </div>
 
           <div className="form-instructions-lead">
-            Please complete the details below as part of your submission.
+            Veuillez renseigner les informations ci-dessous pour transmettre votre signalement aux services municipaux.
           </div>
 
           <form onSubmit={handleSubmit}>
             {/* Address & Zip Row */}
             <div className="form-row-2col">
               <div className="form-field-group">
-                <label className="form-field-label">Address</label>
+                <label className="form-field-label">Adresse ou repère géographique</label>
                 <input
                   type="text"
                   className="form-input-clean"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. Avenue Habib Bourguiba, Tunis"
+                  placeholder="Ex. Avenue Habib Bourguiba, Tunis"
                   required
                 />
               </div>
 
               <div className="form-field-group">
-                <label className="form-field-label">Zip</label>
+                <label className="form-field-label">Code postal</label>
                 <input
                   type="text"
                   className="form-input-clean"
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="e.g. 1001"
+                  placeholder="Ex. 1001"
                 />
               </div>
             </div>
 
             {/* Description Textarea */}
             <div className="form-field-group">
-              <label className="form-field-label">Please describe issue</label>
+              <label className="form-field-label">Description détaillée de l'incident</label>
               <textarea
                 className="form-textarea-clean"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe exact location, dimensions, risks, or landmark references..."
+                placeholder="Décrivez l'emplacement précis, la nature de la dégradation, la dangerosité pour les piétons ou véhicules..."
                 required
               />
             </div>
 
-            {/* Upload Buttons Row matching Reference Image 2 */}
+            {/* Upload Buttons Row */}
             <div className="media-upload-row">
               <label className="btn-upload-capsule">
                 <Upload size={14} />
-                <span>{isUploading ? 'Uploading...' : 'Upload Photos (optional)'}</span>
+                <span>{isUploading ? 'Téléversement...' : 'Ajouter une photo'}</span>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -360,7 +367,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
 
               <label className="btn-upload-capsule">
                 <Video size={14} />
-                <span>Upload Video (optional)</span>
+                <span>Ajouter une vidéo</span>
                 <input
                   type="file"
                   accept="video/mp4,video/quicktime"
@@ -373,11 +380,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
                 type="button"
                 className="btn-upload-capsule"
                 onClick={handleDetectGps}
-                title="Detect current GPS coordinates"
+                title="Détecter vos coordonnées GPS actuelles"
                 style={{ marginLeft: 'auto' }}
               >
                 <MapPin size={14} />
-                <span>GPS Auto</span>
+                <span>{latitude ? `GPS: ${latitude}, ${longitude}` : 'GPS Auto'}</span>
               </button>
             </div>
 
@@ -401,7 +408,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
               </div>
             )}
 
-            {/* Duration Observed Input matching Reference Image 2 */}
+            {/* Duration Observed Input */}
             <div className="form-field-group">
               <label className="form-field-label">{selectedService.questionLabel}</label>
               <input
@@ -409,11 +416,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
                 className="form-input-clean"
                 value={durationObserved}
                 onChange={(e) => setDurationObserved(e.target.value)}
-                placeholder="e.g. First observed 2 days ago after heavy rainfall"
+                placeholder="Ex. Constaté il y a 3 jours après les intempéries"
               />
             </div>
 
-            {/* ADA Ramp Checkbox matching Reference Image 2 */}
+            {/* ADA Ramp Checkbox */}
             <div
               className="custom-checkbox-row"
               onClick={() => setIncludesAdaRamp(!includesAdaRamp)}
@@ -422,7 +429,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
                 {includesAdaRamp && <Check size={14} strokeWidth={3} />}
               </div>
               <div className="checkbox-label-text">
-                Does area of repair include ADA sidewalk ramp
+                La zone comprend-elle une rampe d'accessibilité PMR ou passage piéton ?
               </div>
             </div>
 
@@ -442,49 +449,91 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportSubmitted }) => 
               </div>
             )}
 
-            {/* Solid Navy Save Button matching Reference Image 2 */}
+            {/* Solid Navy Save Button */}
             <button
               type="submit"
               className="btn-citizen-save"
               disabled={isSubmitting || isUploading}
             >
-              {isSubmitting ? 'Submitting Request...' : 'Save'}
+              {isSubmitting ? 'Transmission en cours...' : 'Envoyer le signalement'}
             </button>
           </form>
 
-          {/* Quick Academic Test Presets Bar for Professor Verification */}
-          <div className="test-presets-bar">
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>
-              Quick Test Presets:
-            </span>
+          {/* Academic Demonstration Mode Accordion (Requirement 7) */}
+          <div
+            style={{
+              marginTop: '24px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              background: '#f8fafc',
+            }}
+          >
             <button
               type="button"
-              className="preset-chip"
-              onClick={() => loadPreset('pothole')}
+              onClick={() => setIsDemoModeOpen(!isDemoModeOpen)}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#334155',
+              }}
             >
-              Nid-de-poule (PASS)
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FlaskConical size={14} style={{ color: '#2563eb' }} />
+                Mode Démonstration Académique (Évaluation Enseignant)
+              </span>
+              {isDemoModeOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
-            <button
-              type="button"
-              className="preset-chip"
-              onClick={() => loadPreset('mismatch')}
-            >
-              Incohérence (REVIEW)
-            </button>
-            <button
-              type="button"
-              className="preset-chip"
-              onClick={() => loadPreset('reject')}
-            >
-              Sans Média (REJECT)
-            </button>
-            <button
-              type="button"
-              className="preset-chip"
-              onClick={() => loadPreset('outage')}
-            >
-              Panne RAG (REVIEW)
-            </button>
+
+            {isDemoModeOpen && (
+              <div style={{ padding: '12px 16px', borderTop: '1px solid #e2e8f0', fontSize: '12px', color: '#475569' }}>
+                <p style={{ margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                  Pré-remplissage des 3 scénarios d'évaluation définis dans le sujet d'examen. Les agents n8n sont simulés localement selon le contrat de l'Équipe 1 :
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="preset-chip"
+                    onClick={() => loadPreset('pothole')}
+                    title="Nid de poule conforme -> HTTP 200 PASS"
+                  >
+                    1. Scénario PASS (Nid-de-poule valide)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-chip"
+                    onClick={() => loadPreset('mismatch')}
+                    title="Incohérence image/texte -> HTTP 202 REVIEW"
+                  >
+                    2. Scénario REVIEW (Incohérence média/texte)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-chip"
+                    onClick={() => loadPreset('reject')}
+                    title="Sans média obligatoire -> HTTP 422 REJECT"
+                  >
+                    3. Scénario REJECT (Sans média)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-chip"
+                    onClick={() => loadPreset('outage')}
+                    title="Défaillance base RAG -> HTTP 202 REVIEW"
+                  >
+                    4. Scénario REVIEW (Panne RAG)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
