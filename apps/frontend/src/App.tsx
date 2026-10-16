@@ -26,7 +26,7 @@ import { Calendar, Bell, Send, Search } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [currentTab, setCurrentTab] = useState<'citizen' | 'dashboard'>('dashboard'); // Start on Operations Center or Citizen as needed
+  const [currentTab, setCurrentTab] = useState<'citizen' | 'dashboard'>('citizen'); // Start on Citizen Request (Reference 2)
   const [citizenSubTab, setCitizenSubTab] = useState<'report' | 'track'>('report');
   const [dashboardSubTab, setDashboardSubTab] = useState<
     'overview' | 'map' | 'reports' | 'reviews' | 'settings'
