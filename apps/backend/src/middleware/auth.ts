@@ -51,7 +51,7 @@ export async function resolveSession(req: Request): Promise<{ user: Authenticate
   if (token === expectedStaffSecret) {
     return {
       user: {
-        id: '00000000-0000-0000-0000-000000000001',
+        id: '6a52295f-ad29-4c34-b0f4-8f52c073422b',
         name: 'Directeur Général des Services',
         email: 'admin@ville-intelligente.tn',
         role: 'ADMINISTRATOR',

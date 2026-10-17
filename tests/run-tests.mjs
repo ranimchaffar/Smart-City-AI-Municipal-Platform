@@ -29,12 +29,15 @@ function assert(condition, message) {
   }
 }
 
+const STAFF_AUTH_TOKEN = process.env.STAFF_AUTH_TOKEN || 'municipal-staff-secret-2026';
+
 async function request(path, options = {}) {
   const url = `${BASE_URL}${path}`;
   const response = await fetch(url, {
     method: options.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${STAFF_AUTH_TOKEN}`,
       ...(options.headers || {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
